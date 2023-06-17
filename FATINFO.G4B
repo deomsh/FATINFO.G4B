@@ -94,7 +94,7 @@ goto :eof
 :fatinfo
 setlocal
 if not exist FILE && echo Filesystem on %device%: %filesys% ! echo Filesystem on %FILE%: %filesys%
-if exist uuid && if not %uuid%==0 && echo UUID: %uuid% ! echo UUID: N/A
+if exist uuid && echo UUID: %uuid% ! echo UUID: N/A
 if exist bootvol && echo Volume name in bootsector: %bootvol% ! echo Volume name in bootsector: N/A
 if exist jmpBoot && echo Boot signature: %jmpBoot% (%jmpBoot:~-2,2%%%jmpBoot:~-4,2%%%jmpBoot:~-6,2%) ! echo Boot signature: empty
 if exist OEMName && echo Provider: %OEMName% ! echo Provider: unknown
