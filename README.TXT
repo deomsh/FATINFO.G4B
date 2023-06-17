@@ -40,5 +40,5 @@ Example:  FATINFO.G4B (hd0,0)/FDDIMAGE.IMG
 Example:  FATINFO.G4B --start=63 /HDDIMAGE.IMG
 
 History:
-Version 0.7 
-First published verison
+Version 0.2
+First published version
