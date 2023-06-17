@@ -1,4 +1,4 @@
-FATINFO.G4B v0.2 (20230617), by deomsh (grub4dos version 20170607 or higher)
+FATINFO.G4B v0.2 (20230618), by deomsh (grub4dos version 20170607 or higher)
 Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector] FILE [switch]
