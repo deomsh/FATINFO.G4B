@@ -45,7 +45,7 @@ if not /i %~2==/L32 if not /i %~3==/L32 || set getnext3=Y && set "NULL= > nul"
 if not /i %~2==/V if not /i %~3==/V || set getvars=Y && set "NULL= > nul"
 set ARG=%~1
 if %ARG:~0,1%==( && if %ARG:~-1,1%==) && set device=%~d1 ! call Fn.11 "%~1" "/" && set "FILE=%~f1" ! echo device not given: between parentheses only, no PATH allowed%NULL% && goto :endlocal
-if exist FILE && if not exist %FILE% && echo %FILE% does not exist && goto :endlocal
+if exist FILE && if not exist %FILE% && echo %FILE% is not an existing file && goto :endlocal
 if not exist startsec && set startsec=0 ;; if not exist FILE && if not exist device && echo Device or FILE not given && goto :endlocal
 if not exist mdbase && set mdbase=0x3000
 set /A basemem=%mdbase% * 0x200
