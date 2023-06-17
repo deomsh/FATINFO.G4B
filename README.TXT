@@ -14,7 +14,7 @@ Switch:   Only ONE switch allowed:
            FAT1/ FAT2 equal, FSInfo equal to free cluster-count (fat32 only)
           /TQ quit tests: if all tests passed variable result=1
            otherwise 0 (if no/ not all tests done variable result not exist)
-          /F quiet test if DEVICE is FAT (variable result=1 0)
+          /F quiet test if DEVICE is FAT (variable result=1 or 0)
           /FT quiet test if DEVICE is FATxx
            (variable result=fat32/fat16/fat12 or no result)
           /A get quiet free space on device (variable result=n bytes)
