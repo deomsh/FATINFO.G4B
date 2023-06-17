@@ -1,5 +1,5 @@
 !BAT
-#-#+ FATINFO.G4B v0.2 (20230617), by deomsh
+#-#+ FATINFO.G4B v0.2 (20230618), by deomsh
 #-#+ Function: get file-system info (FAT-devices/ image files only)
 #-#+ Use 1 [--mdbase=sector] FATINFO.G4B DEVICE [/T|/TQ|/F|/FT|/A|/A32|/L|/L32|/V]
 #-#+ Use 2 FATINFO.G4B [--mdbase=sector] [--start=sector] FILE [/T|/TQ|/F|/FT|/A|/A32|/L|/L32|/V]
@@ -45,7 +45,7 @@ if not /i %~2==/L32 if not /i %~3==/L32 || set getnext3=Y && set "NULL= > nul"
 if not /i %~2==/V if not /i %~3==/V || set getvars=Y && set "NULL= > nul"
 set ARG=%~1
 if %ARG:~0,1%==( && if %ARG:~-1,1%==) && set device=%~d1 ! call Fn.11 "%~1" "/" && set "FILE=%~f1" ! echo device not given: between parentheses only, no PATH allowed%NULL% && goto :endlocal
-if exist FILE && if not exist %FILE% && echo %FILE% is not an existing file && goto :endlocal
+if exist FILE && if not exist %FILE% && echo %FILE% does not exist && goto :endlocal
 if not exist startsec && set startsec=0 ;; if not exist FILE && if not exist device && echo Device or FILE not given && goto :endlocal
 if not exist mdbase && set mdbase=0x3000
 set /A basemem=%mdbase% * 0x200
@@ -344,10 +344,10 @@ goto :eof
 
 :getshutdownflag
 setlocal
-#N/A#if /i %filesys%==fat12 && call :readdisk "0" "%reserved%" "1" &; set /A shutdown=%result%&0x00FFF000 &; set shutdown=%shutdown:~0,-3%
-if /i %filesys%==fat16 && setlocal && call :readdisk "2" "%reserved%" "1" &; endlocal && set /A shutdown=%result%&0xFF00 &; set shutdown=%shutdown:~0,2%%%shutdown:~3,1%%%shutdown:~2,1%
-if /i %filesys%==fat32 && setlocal && call :readdisk "4" "%reserved%" "1" &; endlocal && set /A shutdown=%result%&0xFF000000 &; set shutdown=%shutdown:~0,2%%%shutdown:~3,1%%%shutdown:~2,1%
-if not /i %filesys%==fat12 && echo -n Shutdown flag: %shutdown%%%NULL% &; if %shutdown%==0xFF && echo -e \x20(clean)%NULL% ! if %shutdown%==0x0F && echo -e \x20(clean)%NULL% ! if %shutdown%==0x07 && set result=0 && echo -e \x20(dirty)%NULL% ! if %shutdown%==0xF7 && set result=0 && echo -e \x20(dirty)%NULL% ! if %shutdown%==0x0B && set result=0 && echo -e \x20(disk I/O error)%NULL% ! if %shutdown%==0xFB && set result=0 && echo -e \x20(disk I/O error)%NULL% ! echo
+if /i %filesys%==fat16 && setlocal && call :readdisk "2" "%reserved%" "1" &; endlocal && set shutdown=0x%result:~6,2%
+if /i %filesys%==fat32 && setlocal && call :readdisk "4" "%reserved%" "1" &; endlocal && set shutdown=%result:~0,4%
+if /i %filesys%==fat16 &; if %shutdown%==0xFF && echo Shutdown flag: %shutdown% (clean)%NULL% ! if %shutdown%==0x7F && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (dirty)%NULL% ! if %shutdown%==0xBF && set result=0 && echo $[0x0F]Shutdown flag: %shutdown%(disk I/O error)%NULL% ! echo %NULL%
+if /i %filesys%==fat32 &; if %shutdown%==0xFF && echo Shutdown flag: %shutdown% (clean)%NULL% ! if %shutdown%==0x0F && echo Shutdown flag: %shutdown% (clean) ! if %shutdown%==0xF7 && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (dirty)%NULL% ! if %shutdown%==0x07 && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (dirty)%NULL% ! if %shutdown%==0xFB && set result=0 && echo $[0x0F]Shutdown flag: %shutdown%(disk I/O error)%NULL% ! if %shutdown%==0x0B && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (disk I/O error)%NULL% ! echo %NULL%
 endlocal && set shutdown=%shutdown% && set result=%result%
 goto :eof
 
@@ -508,7 +508,7 @@ goto :eof
 :help
 setlocal
 pager status > nul ;; set pagersts=%@retval% > nul ;; pager on
-echo FATINFO.G4B v0.2 (20230617), by deomsh (grub4dos version 20170607 or higher)
+echo FATINFO.G4B v0.2 (20230618), by deomsh (grub4dos version 20170607 or higher)
 echo Function Get FAT-info (no switch), or switch: basic tests or return variable(s)
 :smallhelp
 echo -e Use 1    FATINFO.G4B [--mdbase=sector] DEVICE [switch]
