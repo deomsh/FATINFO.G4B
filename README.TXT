@@ -3,8 +3,9 @@ Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector] FILE [switch]
 Switch:   /T|/TQ|/F|/FT|/A|/A32|/L|/L32|/V
-Remarks:  DEVICE: existing FAT-devices (always with parentheses!)
-          FILE: existing FAT-imagefile (always at least with path!)
+Help:     FATINFO.G4B [/?]
+Remarks:  DEVICE: existing FAT-devices (always with parentheses, no path allowed!)
+          FILE: existing FAT-imagefile (always at with path!)
           --mdbase=sector to change startsecor of memory in use (default 0x3000)
                    max 512 sectors needed
           --start=sector to find bootsector in imagefile (default=0)
