@@ -27,7 +27,7 @@ Switch:   Only ONE switch allowed:
            (variable result=clusternumber)
           /L32 same, but count on FAT32 (variable result=clusternumber)
           /V get quiet fat info on device. variables: FILESYS BYTEPSEC SECPCLUS
-           RESERVED NUMFATS SECPFAT SECTRACK NUMHEADSROOTENTR DEVSECT MEDIABYT
+           RESERVED NUMFATS SECPFAT SECTRACK NUMHEADS ROOTENTR DEVSECT MEDIABYT
            UUID + on fat32: CLUSFREE NEXTFREE (FSInfo)
         Blocklist is mapped to (rd), size must fit in available memory
          Above 2GB loaded in top memory if available
