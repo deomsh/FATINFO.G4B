@@ -64,6 +64,7 @@ DISK supported with arguments ''--start=sector|--skip=N' for offset
 Argument '--partition=p' supported on FILE
 Only mapping to (rd) with argument '--partition=p'
 Better compatibility with grub4efi: argument '--partition=p' NOT supported
+Partly detection of partition: 'volume' in output if not
 Version 0.3
 Bugfixes
 Tests related too CHS/LBA
