@@ -65,7 +65,7 @@ Example:  FATINFO.G4B --start=1929 (cd)
 History:
 Version 0.5
 Bugfix: total sector test on ram-disk
-Bugfix: read-out startsector on partitioned ram-disk (grb4dos only!)
+Bugfix: read-out startsector on partitioned ram-disk (grub4dos only!)
 Blocklist: non-contiguous blocklists supported (max about 510 chars!)
 Blocklist: same switches as FILE '--start=sectors|skip=bytes'
 Better distinction of volume/ partition in output
