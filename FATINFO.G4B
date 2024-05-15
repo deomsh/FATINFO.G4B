@@ -1,11 +1,11 @@
 !BAT
-#-#+ FATINFO.G4B v0.5 (20240428), by deomsh
+#-#+ FATINFO.G4B v0.6 (20240515), by deomsh
 #-#+ Function: get file-system info (FAT-devices/ image files only)
 #-#+ Use 1 FATINFO.G4B [--mdbase=sector] [--hex] DEVICE switch
 #-#+ Use 2 FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=offset|--partition=n] [--hex] FILE switch
-#-#+ Use 3 FATINFO.G4B [--partition=n] [--hex] BLOCKLIST switch
+#-#+ Use 3 FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=offset|--partition=n] [--hex] BLOCKLIST switch
 #-#+ Use 4 FATINFO.G4B [--mdbase=sector] --start=sector|--skip=address [--hex] DISK switch
-#-#+ Switches [/T|/TQ|/F|/FT|/A|/A32|/L|/L32|/V] | /?
+#-#+ Switches [/T|/TQ|/F|/FT|/A|/A32|/L|/L32|/B|/V] | /?
 #-#+ Help FATINFO.G4B /?
 #-# --mdbase=sector to change base sector of memory in use (default=0x3000 ; 0x200 sectors in use)
 #-# --start=sector to set sector on imagefile to read-out bootsector(s) (default start=0)
@@ -42,11 +42,11 @@ debug 1
 debug msg=0
 set "rootorg=%@root%" &; if not exist @uefi && if "%rootorg:~0,3%"=="(cd" && set /A drvnum=*0x82A0&0xff > nul &; if "%rootorg:~3,1%"==")" && set "rootorg=(%drvnum%)%rootorg:~4%" ! set "rootorg=(%drvnum%)%rootorg:~5%"
 :switchloop
-if not exist startsec &; if "%~1"=="--start" && set /a startsec=%~2 && shift && shift && goto :switchloop
-if not exist startsec &; if "%~1"=="--skip" && set /a startsec=%~2>>9 && shift && shift && goto :switchloop
-if not exist mdbase &; if "%~1"=="--mdbase" && set /A mdbase=%~2 && shift && shift && goto :switchloop
-if not exist partitio &; if "%~1"=="--partition" && set /a partitio=%~2 && shift && shift && goto :switchloop
-if not exist hexview &; if "%~1"=="--hex" && set hexview=Y && shift && goto :switchloop
+if not exist startsec && if not exist skipbyte &; if /i "%~1"=="--start" && set /a startsec=%~2 && shift && shift && goto :switchloop
+if not exist startsec && if not exist skipbyte &; if /i "%~1"=="--skip" && set /a skipbyte=%~2 && shift && shift && goto :switchloop
+if not exist mdbase &; if /i "%~1"=="--mdbase" && set /A mdbase=%~2 && shift && shift && goto :switchloop
+if not exist partitio &; if /i "%~1"=="--partition" && set /a partitio=%~2 && shift && shift && goto :switchloop
+if not exist hexview &; if /i "%~1"=="--hex" && set hexview=Y && shift && goto :switchloop
 if exist partitio &; if not %partitio%>=0 && echo Wrong partition number '%partitio%' && set result=0 && goto :endlocal ! if %partitio%>=63 && echo Partition number '%partitio%' out of range && set result=0 && goto :endlocal
 if not /i %~2==/T if not /i %~3==/T || set test=Y
 if not /i %~2==/TQ if not /i %~3==/TQ || set test=Y && set "NULL= > nul"
@@ -57,17 +57,18 @@ if not /i %~2==/A32 if not /i %~3==/A32 || set getfree3=Y && set "NULL= > nul"
 if not /i %~2==/L if not /i %~3==/L || set getnext=Y && set "NULL= > nul"
 if not /i %~2==/L32 if not /i %~3==/L32 || set getnext3=Y && set "NULL= > nul"
 if not /i %~2==/V if not /i %~3==/V || set getvars=Y && set "NULL= > nul"
+if not /i %~2==/B if not /i %~3==/B || set getbadsc=Y && set "NULL= > nul"
 set ARG=%~1
-if %ARG:~0,1%==( && if %ARG:~-1,1%==) && set device=%~d1 && if exist startsec && set disk=Y
+if %ARG:~0,1%==( && if %ARG:~-1,1%==) && set device=%~d1 &; if not exist startsec if not exist skipbyte || set disk=Y
 if not exist device &; call Fn.11 "%~1" "/" && if not "%~n1"=="" && set "FILE=%~f1" && set "PATH=%~p1" && set "NAME=%~n1" && set "EXT=%~x1" && set disk=
 if not exist device && if not exist FILE &; call Fn.11 "%~1" "+" &; if "%~x1"=="" && set "FILE=%~1" && set block=Y && set disk= ! echo '%~1' is not a valid blocklist%NULL% && set result=0 && goto :endlocal
 if not exist device && if not exist FILE &; echo No DEVICE/ FILE/ BLOCKLIST or DISK on command-line%NULL% && goto :endlocal
 if exist device &; raw cat --hex --length=1 %device%%0+1 > nul || echo %device% does not exist%NULL% && set result=0 && goto :endlocal
-if exist FILE && if %block%==Y &; call Fn.11 "%FILE:~0,1%" "(" call Fn.11 "%FILE:~1,8%" ")" || echo %FILE% is not a valid blocklist%NULL% && goto :endlocal ! set block=
+if exist FILE && if %block%==Y &; call Fn.11 "%FILE:~0,1%" "(" call Fn.11 "%FILE:~1,8%" ")" || echo %FILE% is not a valid blocklist%NULL% && goto :endlocal
 if not "%~2"=="" && if not exist test && if not exist isFAT && if not exist isFATxx && if not exist getfreeB && if not exist getfree3 && if not exist getnext && if not exist getnext3 && if not exist getvars &; echo Argument '%~2' on command-line not valid%NULL% && set result=0 && goto :endlocal
 #ProcessingCD#
 if not %disk%==Y if not %block%==Y || set DISK=%~d1
-if exist DISK &; if %DISK:~0,3%==(cd && set CDROM=Y ! if not %DISK:~0,3%==(fd && if not %DISK:~0,3%==(hd && if not %DISK:~0,3%==(rd && if not %DISK:~1,-1%<=0x9F && if %DISK:~1,-1%>=0xA0 && set CDROM=Y &; if %CDROM%==Y && set CDstart=%startsec% && set /a startsec=%startsec% * 4 && set DISK= ! set DISK=
+if exist DISK &; if %DISK:~0,3%==(cd && set CDROM=Y ! if not %DISK:~0,3%==(fd && if not %DISK:~0,3%==(hd && if not %DISK:~0,3%==(md && if not %DISK:~0,3%==(rd && if not %DISK:~1,-1%<=0x9E && if %DISK:~1,-1%>=0x9F && set CDROM=Y ! set CDROM= &; if %CDROM%==Y && if exist skipbyte && set /a CDstart=%skipbyte%>>11 && set /a startsec=%skipbyte%>>9 && set DISK= && set skipbyte= ! if %CDROM%==Y && if not exist skipbyte && set CDstart=%startsec% && set /a startsec=%startsec% * 4 && set DISK= ! set DISK= && if exist skipbyte && set /a startsec=%skipbyte%>>9 && set skipbyte=
 #ProcessingFILEandBLOCKLIST#
 if exist FILE && if not %disk%==Y &; if not %FILE:~0,3%==(rd &; raw cat --length=0 %FILE% > nul && set /A filesize=*0x8290 ! echo %FILE% does not exist%NULL% && goto :endlocal
 if exist FILE && if not %disk%==Y &; if %FILE:~0,3%==(rd && if not exist @uefi &; raw cat --length=0 %FILE% > nul && set /A filesize=*0x8290 ! echo %FILE% does not exist%NULL% && goto :endlocal
@@ -77,7 +78,9 @@ if exist FILE && if not %disk%==Y &; if %FILE:~0,3%==(rd && if exist @uefi && if
 if exist FILE && if not %disk%==Y &; if %FILE:~0,3%==(rd && if exist @uefi && if not %block%==Y &; set /A filesize=*0x82D8 &; if %filesize%==0 && echo %FILE% does not exist%NULL% && goto :endlocal ! cat --hex --length=1 %FILE% > nul || echo Blocklist %FILE% does not exist%NULL% && goto :endlocal ! cat --hex --skip=%filesize% --length=1 %FILE% > nul || echo %FILE% with filesize %filesize% does not exist%NULL% && goto :endlocal
 if exist FILE && if not %disk%==Y && if exist partitio && if not %FILE:~0,3%==(rd && if exist filesize &; if not %filesize%<=2g && set mem=--top ! set mem= &; map --heads=0 --sectors-per-track=0 %mem% %FILE% (rd) > nul && set device=(rd) && set RD=%FILE% && set FILE= && set filesize= ! echo Failed: 'map %mem% %FILE% (rd)'%NULL% && goto :endlocal
 if exist FILE && if not %disk%==Y && if exist partitio &; set device=(rd,%partitio%) && set "RD=%FILE%" && set FILE= && set PATH= && set NAME= && set EXT= && set block=
-if exist FILE && if %block%==Y && if not exist partitio && set RD=%FILE% && setlocal &; call Fn.11 "%FILE%" "(" &; set /a pos0=%@retval% &; call Fn.11 "%FILE%" ")" &; set /a pos1=%@retval% &; call Fn.11 "%FILE%" "+" &; set /a pos2=%@retval% &; set /a S=%pos1%-%pos0%+1 && set /a L=%pos2%-%pos1%-1 &; call set startsec=%^FILE:~%S%,%L%%% &; set /a S2=%S%+%L%+1 &; call set sectors=%^FILE:~%S2%%% &; set /A sectors=%sectors%+%startsec% &; call set FILE=%^FILE:~0,%S%%%%0+%sectors% &; endlocal && set FILE=%FILE% && set startsec=%startsec% && set sectors=%sectors% &; if %CDROM%==Y && set CDstart=%startsec% && set /a startsec=%startsec% * 4
+if exist FILE && if %block%==Y && if not exist partitio && set RD=%FILE% &; cat --length=0 %FILE% > nul && if %CDROM%==Y && set /a sectors=*0x8290/2k ! set /a sectors=*0x8298/512 ! set sectors=0
+if exist FILE && if %block%==Y && if not exist partitio && call Fn.11 "%FILE:~6%" "," && set RD=%FILE% && setlocal &; call Fn.11 "%FILE%" "(" &; set /a pos0=%@retval% &; call Fn.11 "%FILE%" ")" &; set /a pos1=%@retval% &; call Fn.11 "%FILE%" "+" &; set /a pos2=%@retval% &; set /a S=%pos1%-%pos0%+1 && set /a L=%pos2%-%pos1%-1 &; call set /a start=%^FILE:~%S%,%L%%% &; endlocal && set start=%start%
+if exist FILE && if %block%==Y && if not exist partitio && call Fn.11 "%FILE:~6%" "," |; set RD=%FILE% && setlocal &; call Fn.11 "%FILE%" "(" &; set /a pos0=%@retval% &; call Fn.11 "%FILE%" ")" &; set /a pos1=%@retval% &; call Fn.11 "%FILE%" "+" &; set /a pos2=%@retval% &; set /a S=%pos1%-%pos0%+1 && set /a L=%pos2%-%pos1%-1 &; call set /a start=%^FILE:~%S%,%L%%% &; endlocal && set start=%start%
 if exist FILE && if not exist %FILE% && echo %FILE% does not exist && goto :endlocal
 #ProcessingDISK#
 if %disk%==Y && Fn.11 "%device%" "," if exist partitio &; echo Partitioned device %device% not supported with '--start=sector|--skip=offset'%NULL% && goto :endlocal
@@ -97,6 +100,7 @@ if exist FILE && call :bootblockbase "FILE" &; if %result%==0 && echo No FAT inf
 if %isFATxx%==Y &; if /i %filesys:~0,3%==fat && set result=%filesys% ! set result=0 &; goto :endlocal
 if %isFAT%==Y &; if /i %filesys:~0,3%==fat && set result=1 ! set result=0 &; goto :endlocal
 if not exist FILE && call :bootblockbase "device" &; if %result%==0 &; echo No FAT info possible on %device%%%NULL% &; goto :endlocal
+#WhyNotFILEtoo???#
 if not exist FILE && call :checkfatsubtype "%numclus%" &; if not exist filesys && echo No FAT info possible on %device%%%NULL% && set result=0 && goto :endlocal ! if not %filesys%==%filesysT% && echo Grub4dos command 'vol' returned wrong FAT type: %filesys%%%NULL% && set %filesys%=%filesysT% && set filesysT= ! set filesysT=
 #WATCH: if setlocal in sub-routine :getfreeclustersfat32 is passed, endlocal not active#
 if %getfree3%==Y && if /i %filesys%==fat32 && call :getfreeclustersfat32 &; if %getfree3%==Y && set clusfree=%clusfree% ! if %getfreeB%==Y && set clusfree=%clusfrFS% &; if exist clusfree && set /a result=%clusfree% * %clussize% ! set result= &; goto :endlocal
@@ -115,6 +119,9 @@ if not %test%==Y && if /i %filesys%==fat16 && if %totsecOK%==Y && call :getfreec
 if not %test%==Y && if /i %filesys%==fat12 && if %totsecOK%==Y && call :getfreeclustersfat12 &; if not %getfreeB%==Y if not %getnext%==Y |; if %getfreeB%==Y && set clusfree=%clusfree% ! if %getnext%==Y && set result=%nextfree% && set clusfree= &; if exist clusfree && set /a result=%clusfree% * %clussize% ! if %getnext%==Y && set result=%result% &; goto :endlocal
 if not %test%==Y && if /i %filesys%==fat32 && if %clusfrFS%>=0xFFFFFFFE && if %totsecOK%==Y && setlocal && call :getfreeclustersfat32 &; endlocal && set clusfree=%clusfree%
 if not %test%==Y && if /i %filesys%==fat32 && if %nextfrFS%>=0xFFFFFFFE && if %totsecOK%==Y && setlocal && set /a fatsize=%numclus% * 4 + 8 && call :endoffreeclustersfat32 "goback" &; endlocal && set nextfree=%nextfree%
+if not %test%==Y && if %getbadsc%==Y && if /i %filesys%==fat12 && if %totsecOK%==Y && call :getbadclustersfat12 &; set result=%clusbad% && goto :endlocal
+if not %test%==Y && if %getbadsc%==Y && if /i %filesys%==fat16 && if %totsecOK%==Y && call :getbadclustersfat16 &; set result=%clusbad% && goto :endlocal
+if not %test%==Y && if %getbadsc%==Y && if /i %filesys%==fat32 && if %totsecOK%==Y && call :getbadclustersfat32 &; set result=%clusbad% && goto :endlocal
 if not %test%==Y && call :fatinfo && goto :endlocal
 if not %result%==0 && set result=1
 if not exist FILE && call :BPB_totalsectortest ! call :BPB_imagesectortest
@@ -123,8 +130,8 @@ call :CHSLBAbalancetest
 call :BS_signaturetest
 if /i %filesys%==fat32 && call :fat32backuptest
 call :checksecpfat
-if %mediaoke%==Y && echo Media descriptor is start of FAT1%NULL% ! if %mediaoke%==N && echo $[0x0F]Media descriptor is NOT start of FAT1%NULL% ! echo $[0x0F]Test if media descriptor %mediabyt% is same as start of FAT1 not possible%NULL%
 call :getshutdownflag
+call :checkfatstart
 if not %reserve1%==0 && if %BSdrvnum%<=0x9E && if not %BSdrvnum%==0x21 && if not %BSdrvnum%==0x23 && echo Demounting: dirty (%reserved1%) - maybe USB pen drive && set result=0
 if %numfats%>=2 && call :comparefat1fat2
 if /i %filesys%==fat32 && if %totsecOK%==Y && setlocal && call :getfreeclustersfat32 &; if not exist result && echo $[0x0F]Count of free clusters is unknown && endlocal && set nextfree=%nextfree% ! if exist clusfree && if %clusfree%==%clusfrFS% && echo Count of free clusters is same as FSInfo (%clusfree%)%NULL% && endlocal && set nextfree=%nextfree% ! if not %clusfrFS%>=0xFFFFFFE && echo Count of free clusters (%clusfree%) is NOT same as FSInfo (%clusfrFS%)%NULL% && endlocal && set nextfree=%nextfree% ! echo Count of free clusters is %clusfree% - FSInfo is unknown%NULL% && endlocal && set nextfree=%nextfree%
@@ -135,10 +142,7 @@ if /i %filesys%==fat12 && if %totsecOK%==Y && call :getbadclustersfat12 &; if %g
 if /i %filesys%==fat16 && if %totsecOK%==Y && call :getbadclustersfat16 &; if %getbadB%==Y && set result=%clusbad% && goto :endlocal
 if /i %filesys%==fat32 && if %totsecOK%==Y && call :getbadclustersfat32 &; if %getbadB%==Y && set result=%clusbad% && goto :endlocal
 if exist clusbad &; if %clusbad%==0 && echo Number of clusters marked as bad: %clusbad% ! echo $[0x0F]Number of clusters marked as bad: %clusbad% && set result=0
-if not %hiddsect%==0 && set /a bytedata=%tracks% * %numheads% * %sectrack% - %hiddsect% * %bytepsec% - %dataarea% && set /a byteclus=%numclus% * %clussize% &; set /a paddsect=%bytedata%-%byteclus%/%bytepsec% &; if %paddsect%>=0 && echo Number of padding sectors: %paddsect% ! echo $[0x0F]Number of padding sectors: %paddsect% - BUG, please report! && set result=0
-if %hiddsect%==0 && if exist FILE && set /a bytedata=%hiddsect% * %bytepsec% * -1 + %filesize% - %dataarea% && set /a byteclus=%numclus% * %clussize% &; set /a paddsect=%bytedata%-%byteclus%/%bytepsec% &; if %paddsect%>=0 && echo Number of padding sectors: %paddsect% ! echo $[0x0F]Number of padding sectors: %paddsect% - BUG, please report! && set result=0
-if %hiddsect%==0 && if not exist FILE && set /a bytedata=%devsect% - %hiddsect% * %bytepsec% - %dataarea% && set /a byteclus=%numclus% * %clussize% &; set /a paddsect=%bytedata%-%byteclus%/%bytepsec% &; if %paddsect%>=0 && echo Number of padding sectors: %paddsect% ! echo $[0x0F]Number of padding sectors: %paddsect% - BUG, please report! && set result=0
-#OKE_XXvars##echo -n > (md)0x302+60 && set > (md)0x302+60 && raw cat --locate=\x0A (md)0x302+60 > nul &; echo %0 NUMVARS=%@retval% && cat --locate=\x0A --replace=\x20 (md)0x302+60 && raw cat (md)0x302+60 && echo && echo -n && pause Press a Key to Continue... && echo
+set /a bytedata=%devsect% * %bytepsec% - %dataarea% && set /a byteclus=%numclus% * %clussize% &; set /a paddsect=%bytedata%-%byteclus%/%bytepsec% &; if %paddsect%>=0 && echo Number of padding sectors: %paddsect% ! echo $[0x0F]Number of padding sectors: %paddsect% - BUG, please report! && set result=0
 if %result%==1 && echo All tests: PASSED%NULL% ! if %result%==0 && echo All tests: $[0x0F]NOT PASSED%NULL% ! echo Not all tests possible%NULL%
 :endlocal
 if %hexview%==Y && call :hexview
@@ -159,7 +163,7 @@ goto :eof
 :fatintegritytest
 setlocal
 if %disk%==Y &; if %CDROM%==Y && set /a sectors=%devsect%/4 ! set sectors=%devsect%
-if exist RD && if %block%==Y && echo -n Filesystem on [%RD%]: %filesys%%%NULL% ! if exist RD && if %disk%==Y && echo -n Filesystem on [%RD%+%sectors%]: %filesys%%%NULL% ! if not exist FILE && echo -n Filesystem on %device%: %filesys%%%NULL% ! echo -n Filesystem on %FILE%: %filesys%%%NULL% &; if %startsec%>=1 && echo -e \x20at sector %startsec%%%NULL% ! echo%NULL%
+if exist RD && if %block%==Y && echo -n Filesystem on [%RD%]: %filesys%%%NULL% ! if exist RD && if %disk%==Y && echo -n Filesystem on [%RD%+%sectors%]: %filesys%%%NULL% ! if not exist FILE && echo -n Filesystem on %device%: %filesys%%%NULL% ! echo -n Filesystem on %FILE%: %filesys%%%NULL% &; if %startsec%>=1 && if %CDROM%==Y && set /a offset=%CDstart% ! set offset=%startsec% &; if %startsec%>=1 && echo -e \x20at sector %offset%%%NULL% ! echo%NULL% &; set offset=
 set /A base=%mdbase% * 0x200
 if %test%==Y && set color=$[0x0F] ! set color=$[]
 #bytepsec#
@@ -463,8 +467,8 @@ call Fn.4 ;; set /a v=%@retval%>>8 ;; call Fn.5 0 %v% ;; echo -n -e \x20$[0x0F]C
 setlocal && set device=(md) && call :readdisk "%address%" "%mdbase%" "%secpfat%" &; endlocal && set result=%result% &; set /A evenclus=%result%&0xfff && set /A oddclus=%result%&0xffffff>>12
 if %evenclus%==0xFF7 && set /a clusbad=%clusbad%+1
 if %oddclus%==0xFF7 && set /a clusbad=%clusbad%+1
-#OKE#if %evenclus%==0xFF7 && set /a clusbad=%clusbad%+1 && raw cat --hex --skip=%address% --length=16 (md)%mdbase%+%secpfat% && echo && pause Even: address=%address% Key...
-#OKE#if %oddclus%==0xFF7 && set /a clusbad=%clusbad%+1 && raw cat --hex --skip=%address% --length=16 (md)%mdbase%+%secpfat% && echo && pause Odd: address=%address% key...
+#DBG#if %evenclus%==0xFF7 && set /a clusbad=%clusbad%+1 && raw cat --hex --skip=%address% --length=16 (md)%mdbase%+%secpfat% && echo && pause Even: address=%address% Key...
+#DBG#if %oddclus%==0xFF7 && set /a clusbad=%clusbad%+1 && raw cat --hex --skip=%address% --length=16 (md)%mdbase%+%secpfat% && echo && pause Odd: address=%address% key...
 set /A address=%address%+3 &; if not %address%>=%fatsize% && set result= && set evenclus= && set oddclus= && goto :badclustersfat12loop
 call Fn.5 0 %v% ;; echo -n -e \x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20%NULL% ;; call Fn.5 0 %v%
 endlocal && set clusbad=%clusbad%
@@ -475,8 +479,8 @@ setlocal
 set /a HS=%numheads% * %sectrack% && set /a totsect=%devsect%+%hiddsect%
 set /a tracks=%totsect%/%HS% &; if %numheads%<=2 && echo Number of tracks: %tracks%%%NULL% ! echo Number of cylinders: %tracks%%%NULL%
 calc %totsect% % %HS% || echo CHS and LBA values are balanced%NULL% ! if not %sectrack%==63 && if not %numheads%==255 && echo $[0x0F]CHS and LBA values are NOT balanced%NULL% ! echo Unknown if CHS and LBA values are balanced%NULL%
-if not %hiddsect%==0 &; if exist device && set /a ptstart=*0x82A8 ! set ptstart=%startsec% &; calc %ptstart% % %sectrack% || echo Partition starts at begin of a head%NULL% ! if not %sectrack%==63 && if not %numheads%==255 && echo $[0x0F]Partition does not start at begin of a head%NULL% ! echo Unknown if partition starts at begin of a head%NULL%
-if %hiddsect%==0 &; if exist device && set /a ptstart=*0x82A8 ! set ptstart=%startsec% &; calc %ptstart% % %sectrack% || echo Volume starts at begin of a head%NULL% ! if not %sectrack%==63 && if not %numheads%==255 && echo $[0x0F]Partition does not start at begin of a head%NULL% ! echo Unknown if partition starts at begin of a head%NULL%
+if not %hiddsect%==0 &; if exist device && set /a ptstart=*0x82A8 ! if %CDROM%==Y && if exist start && set /a ptstart=%start% * 4 + %startsec% ! if exist start && set /a ptstart=%startsec%+%start% ! set ptstart=%startsec% &; calc %ptstart% % %sectrack% || echo Partition starts at begin of a head%NULL% ! if not %sectrack%==63 && if not %numheads%==255 && echo $[0x0F]Partition does not start at begin of a head%NULL% ! echo Unknown if partition starts at begin of a head%NULL%
+if %hiddsect%==0 &; if exist device && set /a ptstart=*0x82A8 ! if %CDROM%==Y && if exist start && set /a ptstart=%start% * 4 + %startsec% ! if exist start && set /a ptstart=%startsec%+%start% ! set ptstart=%startsec% &; calc %ptstart% % %sectrack% || echo Volume starts at begin of a head%NULL% ! if not %sectrack%==63 && if not %numheads%==255 && echo $[0x0F]Volume does not start at begin of a head%NULL% ! echo Unknown if volume starts at begin of a head%NULL%
 endlocal && set tracks=%tracks%
 goto :eof
 ::
@@ -580,11 +584,25 @@ goto :eof
 :getshutdownflag
 setlocal
 if not %totsecOK%==Y && echo $[0x0F]Test of shutdownflag in start of FAT1 not possible%NULL% && endlocal && set result=0 && goto :eof
+#DBG#if /i %filesys%==fat16 && setlocal && call :readdisk "2" "%reserved%" "1" &; echo %0 result=%result% && endlocal && set shutdown=0x%result:~6,2% &; echo shutdown=%shutdown%
+#DBG#if /i %filesys%==fat32 && setlocal && call :readdisk "4" "%reserved%" "1" &; echo %0 result=%result% && endlocal && set shutdown=%result:~0,4% &; echo shutdown=%shutdown%
 if /i %filesys%==fat16 && setlocal && call :readdisk "2" "%reserved%" "1" &; endlocal && set shutdown=0x%result:~6,2%
 if /i %filesys%==fat32 && setlocal && call :readdisk "4" "%reserved%" "1" &; endlocal && set shutdown=%result:~0,4%
 if /i %filesys%==fat16 &; if %shutdown%==0xFF && echo Shutdown flag: %shutdown% (clean)%NULL% ! if %shutdown%==0x7F && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (dirty)%NULL% ! if %shutdown%==0xBF && set result=0 && echo $[0x0F]Shutdown flag: %shutdown%(disk I/O error)%NULL% ! echo %NULL%
 if /i %filesys%==fat32 &; if %shutdown%==0xFF && echo Shutdown flag: %shutdown% (clean)%NULL% ! if %shutdown%==0x0F && echo Shutdown flag: %shutdown% (clean) ! if %shutdown%==0xF7 && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (dirty)%NULL% ! if %shutdown%==0x07 && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (dirty)%NULL% ! if %shutdown%==0xFB && set result=0 && echo $[0x0F]Shutdown flag: %shutdown%(disk I/O error)%NULL% ! if %shutdown%==0x0B && set result=0 && echo $[0x0F]Shutdown flag: %shutdown% (disk I/O error)%NULL% ! echo %NULL%
 endlocal && set shutdown=%shutdown% && set result=%result%
+goto :eof
+::
+:checkfatstart
+setlocal
+#DBG#if /i %filesys%==fat12 &; setlocal && call :readdisk "0" "%reserved%" "1" &; echo %0 result=%result% && endlocal && set /A clus01=%result%&0xffffff &; set clus01=000000%clus01:~2% &; set clus01=0x%clus01:~-6,6% &; if %clus01:~0,-2%==0xFFFF%mediabyt% && set fatoke=Y ! set result=0
+if /i %filesys%==fat12 &; setlocal && call :readdisk "0" "%reserved%" "1" &; endlocal && set clus01=0x%result:~-6,6% &; if %clus01%==0xFFFF%mediabyt:~2% && set fatoke=Y ! set result=0
+if /i %filesys%==fat16 &; setlocal && call :readdisk "0" "%reserved%" "1" &; endlocal && set clus01=0x%result:~-8,8% &; if %clus01%==0x%shutdown:~2%%FFFF%mediabyt:~2% && set fatoke=Y ! set result=0
+if /i %filesys%==fat32 &; setlocal && call :readdisk "0" "%reserved%" "1" &; endlocal && set clus0=%result% &; setlocal && call :readdisk "4" "%reserved%" "1" &; endlocal && set clus1=%result% &; if %clus0%==0xFFFFFF%mediabyt:~2% && if %clus1%==0x%shutdown:~2%FFFFFF && set fatoke=Y ! if %clus0%==0x0FFFFF%mediabyt:~2% && if %clus1%==0x%shutdown:~2%FFFFFF && set fatoke=Y ! set result=0
+if /i %filesys%==fat12 &; if %fatoke%==Y && echo Start of FAT1 is valid, media descriptor is start of FAT%NULL% ! echo $[0x0F]Start of FAT1 not is valid: %clus01% (%clus01:~-2,2%%%clus01:~-4,2%%%clus01:~-6,2%)%NULL%
+if /i %filesys%==fat16 &; if %fatoke%==Y && echo Start of FAT1 is valid, media descriptor is start of FAT%NULL% ! echo $[0x0F]Start of FAT1 not is valid: %clus01% (%clus01:~-2,2%%%clus01:~-4,2%%%clus01:~-6,2%%%clus01:~-8,2%)%NULL%
+if /i %filesys%==fat32 &; if %fatoke%==Y && echo Start of FAT1 is valid, media descriptor is start of FAT%NULL% ! echo $[0x0F]Start of FAT1 not is valid: %clus1%%%clus0:~2% (%clus0:~-2,2%%%clus0:~-4,2%%%clus0:~-6,2%%%clus0:~-8,2%%%clus1:~-2,2%%%clus1:~-4,2%%%clus1:~-6,2%%%clus1:~-8,2%)%NULL%
+endlocal && set fatoke=%fatoke% && set result=%result%
 goto :eof
 ::
 :comparefat1fat2
@@ -654,7 +672,8 @@ if %~1==device && raw dd if=%device%%0+1 of=(md)%mdbase%+1 > nul
 if %~1==FILE && set /a skip=%startsec% * 512 &; raw dd if=%FILE% of=(md)%mdbase%+1 bs=1 count=512 skip=%skip% > nul
 set /A base=%mdbase% * 0x200
 set /A address=%base%
-read %address% > nul ;; set /A jmpBoot=%@retval%&0xffffff
+read %address% > nul ;; set /A jmpBoot=%@retval%&0xffffff ;; set jmpBoot=000000%jmpBoot:~2% ;; set jmpBoot=0x%jmpBoot:~-6,6%
+#BUG##read %address% > nul ;; set /A jmpBoot=%@retval%&0xffffff
 set /A address=%base%+0x3
 cat --skip=3 --length=8 (md)%mdbase%+1 | set OEMName=
 set /A address=%base%+0xB
@@ -753,7 +772,7 @@ goto :eof
 :help
 setlocal
 pager status > nul ;; set pagersts=%@retval% > nul ;; pager on
-echo FATINFO.G4B v0.5 (20240428), by deomsh (grub4dos version 20170607 or higher)
+echo FATINFO.G4B v0.6 (20240515), by deomsh (grub4dos version 20170607 or higher)
 echo Function Get FAT-info (no switch), or switch: basic tests or return variable(s)
 :smallhelp
 echo -e Use 1    FATINFO.G4B [--mdbase=m] [--hex] DEVICE [switch]
@@ -763,7 +782,7 @@ echo -e Use 3    FATINFO.G4B [--mdbase=m] [--start=n|--skip=N|--partition=p] [--
 echo -e $[]                      BLOCKLIST [switch]
 echo -e Use 4    FATINFO.G4B [--mdbase=m] [--start=n|--skip=N] [--hex] DISK [switch]
 echo Help     FATINFO.G4B /?
-echo -e Switch   /T|/TQ|/F|/FT|/A|/A32|/L|/L32|/V && if %~1==smallhelp && goto :smallhelp2
+echo -e Switch   /T|/TQ|/F|/FT|/A|/A32|/L|/L32|/B|/V && if %~1==smallhelp && goto :smallhelp2
 echo Remarks     DEVICE: existing FAT-devices (always with parentheses!)
 echo $[]           Ram-disk is treated as FILE (rd) or (rd,pt_num)
 echo $[]           Partitioned ram-disk is NOT supported with grub4efi, use '--start=n'
@@ -777,19 +796,20 @@ echo $[]         --skip=address to set byte-offset of bootsector in image/ iso/ 
 echo $[]         --partition=0-62 to find bootsector in image/ iso/ blocklist
 echo $[]                  mapped to ram-disk in (available) memory
 echo $[]          With --partition=0-62 FILE/ BLOCKLIST mapped to (rd) if fit in memory
-echo $[]          Above 2GB loaded in top memory if available
+echo $[]          Sizes above 2GB loaded in top memory if available
 echo $[]          Afterwards blocklist is available in (rd), partitions (rd,0) and up
 echo $[]          To get FAT info, size must be a least Hidden + Reserved + FAT sectors
 echo $[]         --hex to view in hex bootsectors and first sector of FAT(s)
 echo -e Switch   Only ONE switch allowed:
 echo -e $[]         /T tests: Media descriptor, Fit on partition, Last sector valid\n          Number of tracks/cylinders, Balanced CHS/LBA, Signatures\n          Sectors per FAT Media descriptor in FAT1\n          Check Dirty bit, FAT1/ FAT2 equal\n          FSInfo equal to free cluster-count (fat32 only)\n          FSLastFree equal to last free cluster (fat32 only)
 echo -e $[]         /TQ quit tests: if all tests passed variable result=1\n          otherwise 0 (if no/ not all tests done variable result not exist)
-echo $[]         /F quiet test if DEVICE is FAT (variable result=1 0)
+echo $[]         /F quiet test if DEVICE is FAT (variable result=1/0)
 echo -e $[]         /FT quiet test if DEVICE is FATxx\n          (variable result=fat32/fat16/fat12 or no result)
 echo $[]         /A get quiet free space on device (variable result=n bytes)
 echo $[]         /A32 count quiet free space on FAT32 (variable result=n bytes)
 echo -e $[]         /L quiet last allocated cluster on device\n          (variable result=clusternumber)
 echo $[]         /L32 same, but count on FAT32 (variable result=clusternumber)
+echo -e $[]         /B quiet number of clusters marked as bad\n          (variable result=number of bad clusters)
 echo -e $[]         /V get quiet fat info on device. variables: FILESYS BYTEPSEC SECPCLUS\n          RESERVED NUMFATS SECPFAT SECTRACK NUMHEADSROOTENTR DEVSECT MEDIABYT\n          UUID + on fat32: CLUSFREE NEXTFREE (FSInfo)
 echo Example  FATINFO.G4B (fd0)
 echo Example  FATINFO.G4B (hd0,0)
@@ -804,6 +824,7 @@ echo -e Example  FATINFO.G4B (hd2,0) /FT \x3B\x3B set result
 echo -e Example  FATINFO.G4B (hd1,0) /V \x3B\x3B set
 echo -e Example  FATINFO.G4B (hd1,0) /L \x3B\x3B set result
 echo -e Example  FATINFO.G4B (hd0,0) /A32 \x3B\x3B set result
+echo -e Example  FATINFO.G4B (hd0,0) /B \x3B\x3B set result
 echo -e Example  FATINFO.G4B (hd0,0)/FDDIMAGE.IMG
 echo -e Example  FATINFO.G4B --start=63 /HDDIMAGE.IMG
 echo -e Example  FATINFO.G4B --skip=0x85E00 /HDDIMAGE.IMG
@@ -823,5 +844,5 @@ echo -e Example  FATINFO.G4B --start=63 (hd1,0)/HDDIMAGE.IMG
 echo -e Example  FATINFO.G4B --skip=0xD000 (hd0,0)/ELTORITO.ISO
 echo -e Example  FATINFO.G4B  (0xe0)0x2C+720
 echo -e Example  FATINFO.G4B --partition=0 (hd0,0)44992028+2g
-echo -e Example  FATINFO.G4B --start=1929 (cd)
+echo -e Example  FATINFO.G4B --start=1929 (0x9f)
 goto :eof
