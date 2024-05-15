@@ -65,14 +65,14 @@ Example:  FATINFO.G4B --start=1929 (cd)
 
 History:
 Version 0.6
-NEW: swtich /B to get silent result 'sectors marked bad' in FAT
-NEW: CD_ROM starts at 0x9f, (hd31) still accepted as disk
-IMPROVED: use of '--start=sectors|--skip=bytes with blocklist (non-contigous blocklists too)
-Bugfix: bad dividing to sectors from '--skip=bytes' in case of CD
-Bugfix: echo 'partition start not at begin of a head' if hiddsect=0
+NEW: switch '/B' to get silent result 'sectors marked bad' in FAT
+NEW: CD-ROM starts at 0x9f, as (hd31) still accepted as harddrive
+IMPROVED: use of '--start=sectors|--skip=bytes' with blocklist (non-contiguous blocklists too)
+Bugfix: bad dividing to sectors with '--skip=bytes' in case of CD
+Bugfix: echo 'partition start not at begin of a head' if hidden sectors=0
 Bugfix: bad read-out of padding sectors in certain cases
-Bugfix: bad echo Filesystem at sector xxx: correction for CD
-Bugfix: bad echo of jmpBoot low byte is zero
+Bugfix: bad echo 'Filesystem (...) at sector xxx': correction for CD
+Bugfix: bad echo of 'jump' value if low byte was zero
 Version 0.5
 Bugfix: total sector test on ram-disk
 Bugfix: read-out startsector on partitioned ram-disk (grub4dos only!)
