@@ -69,7 +69,7 @@ NEW: switch '/B' to get silent result 'sectors marked bad' in FAT
 NEW: CD-ROM starts at 0x9f, as (hd31) still accepted as harddrive
 IMPROVED: use of '--start=sectors|--skip=bytes' with blocklist (non-contiguous blocklists too)
 Bugfix: bad dividing to sectors with '--skip=bytes' in case of CD
-Bugfix: echo 'partition start not at begin of a head' if hidden sectors=0
+Bugfix: echo 'partition starts [not] not at begin of a head' if hidden sectors=0
 Bugfix: bad read-out of padding sectors in certain cases
 Bugfix: bad echo 'Filesystem (...) at sector xxx': correction for CD
 Bugfix: bad echo of 'jump' value if low byte was zero
