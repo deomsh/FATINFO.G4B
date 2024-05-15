@@ -1,15 +1,15 @@
-FATINFO.G4B v0.5 (20240428), by deomsh (grub4dos version 20170607 or higher)
+FATINFO.G4B v0.6 (20240515), by deomsh (grub4dos version 20170607 or higher)
 Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] [--hex] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] FILE [switch]
 Use 3:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] BLOCKLIST [switch]
 Use 4:    FATINFO.G4B [--mdbase=m] --start=n|--skip=N [--hex] DISK [switch]
-Switch:   /T|/TQ|/F|/FT|/A|/A32|/L|/L32|/V
+Switch:   /T|/TQ|/F|/FT|/A|/A32|/L|/L32|/B|/V
 Help:     FATINFO.G4B [/?]
 Remarks:  DEVICE: existing FAT-devices (always with parentheses, no path allowed!)
-          FILE: existing FAT-imagefile (always at with path!)
             Ram-disk is treated as FILE (rd) or (rd,pt_num)
             Partitioned ram-disk is NOT supported with grub4efi, use '--start=n'
+          FILE: existing FAT-imagefile (always at with path! and if without extension no '+' in name-part!
           BLOCKLIST: containing FAT volume/ partition is treated as FILE
           DISK: containing FAT volume/ partition on given offset (no default!)
           --mdbase=sector to change startsecor of memory in use (default 0x3000)
@@ -17,10 +17,9 @@ Remarks:  DEVICE: existing FAT-devices (always with parentheses, no path allowed
           --start=sector to find bootsector in imagefile (default=0)
           --skip=address to set byte-offset of bootsector in image/ iso/ disk
           --partition=0-62 to get bootsector in blocklist (default: no partition)
-           FILE/ BLOCKLIST mapped to (rd) if fit in memory
-            Above 2GB loaded in top memory if available
+            FILE/ BLOCKLIST mapped to (rd) if fit in memory
             With --partition=0-62 FILE/ BLOCKLIST mapped to (rd) if fit in memory
-            Above 2GB loaded in top memory if available
+            Sizes above 2GB loaded in top memory if available
             Afterwards blocklist is available in (rd), partitions (rd,0) and up
             To get FAT info, size must be a least Hidden + Reserved + FAT sectors
           --hex to view in hex bootsectors and first sector of FAT(s)
@@ -38,6 +37,7 @@ Switch:   Only ONE switch allowed:
           /L quiet last allocated cluster on device
             (variable result=clusternumber)
           /L32 same, but count on FAT32 (variable result=clusternumber)
+          /B quiet number of clusters marked as bad in FAT (variable result=number of bad clusters)
           /V get quiet fat info on device. variables: FILESYS BYTEPSEC SECPCLUS
             RESERVED NUMFATS SECPFAT SECTRACK NUMHEADS ROOTENTR DEVSECT MEDIABYT
             UUID + on fat32: CLUSFREE NEXTFREE (FSInfo)
@@ -54,6 +54,7 @@ Example:  FATINFO.G4B (hd2,0) /FT ;; set result
 Example:  FATINFO.G4B (hd1,0) /V ;; set
 Example:  FATINFO.G4B (hd1,0) /L ;; set result
 Example:  FATINFO.G4B (hd0,0) /A32 ;; set result
+Example:  FATINFO.G4B (hd0,0) /B ;; set result
 Example:  FATINFO.G4B (hd0,0)/FDDIMAGE.IMG
 Example:  FATINFO.G4B --start=63 /HDDIMAGE.IMG
 Example:  FATINFO.G4B (0xe0)0x2C+720
@@ -63,6 +64,15 @@ Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --start=1929 (cd)
 
 History:
+Version 0.6
+NEW: swtich /B to get silent result 'sectors marked bad' in FAT
+NEW: CD_ROM starts at 0x9f, (hd31) still accepted as disk
+IMPROVED: use of '--start=sectors|--skip=bytes with blocklist (non-contigous blocklists too)
+Bugfix: bad dividing to sectors from '--skip=bytes' in case of CD
+Bugfix: echo 'partition start not at begin of a head' if hiddsect=0
+Bugfix: bad read-out of padding sectors in certain cases
+Bugfix: bad echo Filesystem at sector xxx: correction for CD
+Bugfix: bad echo of jmpBoot low byte is zero
 Version 0.5
 Bugfix: total sector test on ram-disk
 Bugfix: read-out startsector on partitioned ram-disk (grub4dos only!)
