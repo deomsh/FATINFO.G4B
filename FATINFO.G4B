@@ -1,5 +1,5 @@
 !BAT
-#-#+ FATINFO.G4B v0.6 (20240515), by deomsh
+#-#+ FATINFO.G4B v0.6.1 (20240728), by deomsh
 #-#+ Function: get file-system info (FAT-devices/ image files only)
 #-#+ Use 1 FATINFO.G4B [--mdbase=sector] [--hex] DEVICE switch
 #-#+ Use 2 FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=offset|--partition=n] [--hex] FILE switch
@@ -66,9 +66,9 @@ if not exist device && if not exist FILE &; echo No DEVICE/ FILE/ BLOCKLIST or D
 if exist device &; raw cat --hex --length=1 %device%%0+1 > nul || echo %device% does not exist%NULL% && set result=0 && goto :endlocal
 if exist FILE && if %block%==Y &; call Fn.11 "%FILE:~0,1%" "(" call Fn.11 "%FILE:~1,8%" ")" || echo %FILE% is not a valid blocklist%NULL% && goto :endlocal
 if not "%~2"=="" && if not exist test && if not exist isFAT && if not exist isFATxx && if not exist getfreeB && if not exist getfree3 && if not exist getnext && if not exist getnext3 && if not exist getvars &; echo Argument '%~2' on command-line not valid%NULL% && set result=0 && goto :endlocal
-#ProcessingCD#
 if not %disk%==Y if not %block%==Y || set DISK=%~d1
 if exist DISK &; if %DISK:~0,3%==(cd && set CDROM=Y ! if not %DISK:~0,3%==(fd && if not %DISK:~0,3%==(hd && if not %DISK:~0,3%==(md && if not %DISK:~0,3%==(rd && if not %DISK:~1,-1%<=0x9E && if %DISK:~1,-1%>=0x9F && set CDROM=Y ! set CDROM= &; if %CDROM%==Y && if exist skipbyte && set /a CDstart=%skipbyte%>>11 && set /a startsec=%skipbyte%>>9 && set DISK= && set skipbyte= ! if %CDROM%==Y && if not exist skipbyte && set CDstart=%startsec% && set /a startsec=%startsec% * 4 && set DISK= ! set DISK= && if exist skipbyte && set /a startsec=%skipbyte%>>9 && set skipbyte=
+if exist FILE &; if exist skipbyte && set /a startsec=%skipbyte%/512 && set skipbyte=
 #ProcessingFILEandBLOCKLIST#
 if exist FILE && if not %disk%==Y &; if not %FILE:~0,3%==(rd &; raw cat --length=0 %FILE% > nul && set /A filesize=*0x8290 ! echo %FILE% does not exist%NULL% && goto :endlocal
 if exist FILE && if not %disk%==Y &; if %FILE:~0,3%==(rd && if not exist @uefi &; raw cat --length=0 %FILE% > nul && set /A filesize=*0x8290 ! echo %FILE% does not exist%NULL% && goto :endlocal
@@ -666,9 +666,12 @@ goto :eof
 ::
 :bootblockbase
 #-# read-out bootsector as far as needed
+#NotGood#setlocal && set * && set mdbase=%mdbase% && set filesys=%filesys% && set device=%device% && set "FILE=%FILE%" && set startsec=%startsec% && set skipbyte=%skipbyte%
 setlocal && set * && set mdbase=%mdbase% && set filesys=%filesys% && set device=%device% && set "FILE=%FILE%" && set startsec=%startsec%
 echo -n > (md)%mdbase%+1
 if %~1==device && raw dd if=%device%%0+1 of=(md)%mdbase%+1 > nul
+#NotGood#if %~1==FILE &; if exist skipbyte && set /a skip=%skipbyte% ! set /a skip=%startsec% * 512 &; raw dd if=%FILE% of=(md)%mdbase%+1 bs=1 count=512 skip=%skip% > nul
+#ORG#
 if %~1==FILE && set /a skip=%startsec% * 512 &; raw dd if=%FILE% of=(md)%mdbase%+1 bs=1 count=512 skip=%skip% > nul
 set /A base=%mdbase% * 0x200
 set /A address=%base%
@@ -685,7 +688,7 @@ read %address% > nul ;; set /a reserved=%@retval%&0xffff
 set /A address=%base%+0x10
 read %address% > nul ;; set /a numfats=%@retval%&0xff
 set /A address=%base%+0x11
-read %address% > nul ;; set /a rootentr=%@retval%&0xffff
+read %address% > nul ;; set /a rootentr=%@retval%&0xffff &; calc %rootentr% % 16 &; if %~1==device && endlocal && echo %rootentr% Root entries on %device% not supported%NULL% && set result=0 && goto :eof ! if %~1==FILE && endlocal && echo %rootentr% Root entries on %FILE% not supported%NULL% && set result=0 && goto :eof ! endlocal && set result=0 && goto :eof
 set /A address=%base%+0x13
 read %address% > nul ;; set /a totsect=%@retval%&0xffff
 set /A address=%base%+0x15
@@ -772,7 +775,7 @@ goto :eof
 :help
 setlocal
 pager status > nul ;; set pagersts=%@retval% > nul ;; pager on
-echo FATINFO.G4B v0.6 (20240515), by deomsh (grub4dos version 20170607 or higher)
+echo FATINFO.G4B v0.6.1 (20240728), by deomsh (grub4dos version 20170607 or higher)
 echo Function Get FAT-info (no switch), or switch: basic tests or return variable(s)
 :smallhelp
 echo -e Use 1    FATINFO.G4B [--mdbase=m] [--hex] DEVICE [switch]
