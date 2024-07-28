@@ -1,4 +1,4 @@
-FATINFO.G4B v0.6 (20240515), by deomsh (grub4dos version 20170607 or higher)
+FATINFO.G4B v0.6.1 (20240728), by deomsh (grub4dos version 20170607 or higher)
 Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] [--hex] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] FILE [switch]
@@ -64,6 +64,10 @@ Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --start=1929 (cd)
 
 History:
+Version 0.6.1
+New: number of Root Directory Entries must MUST fit in whole number of sectors, or FAT-file system will be rejected as not valid
+Bugfix: --skip=xxxxx bytes not working WITH FILE
+
 Version 0.6
 NEW: switch '/B' to get silent result 'sectors marked bad' in FAT
 NEW: CD-ROM starts at 0x9f, as (hd31) still accepted as harddrive
