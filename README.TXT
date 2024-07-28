@@ -67,7 +67,6 @@ History:
 Version 0.6.1
 New: number of Root Directory Entries must MUST fit in whole number of sectors, or FAT-file system will be rejected as not valid
 Bugfix: --skip=xxxxx bytes not working WITH FILE
-
 Version 0.6
 NEW: switch '/B' to get silent result 'sectors marked bad' in FAT
 NEW: CD-ROM starts at 0x9f, as (hd31) still accepted as harddrive
