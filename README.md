@@ -1,4 +1,4 @@
-## FATINFO.G4B v0.6.1 (20240728), by deomsh
+## FATINFO.G4B v0.7 (20250828), by deomsh
 <pre><code>Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] [--hex] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] FILE [switch]
@@ -65,6 +65,22 @@ Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --start=1929 (cd)</code></pre>    
 
 ### HISTORY
+Version 0.7  
+New: with --hex always pager on during operation (set to original status afterwards)  
+New: display of First Root Cluster on FAT32  
+New: recognition of standard FAT/ FAT32 PBR-bootcodes: MSDOS 3.3, MSDOS 4.0, MSDOS 5.0, MSDOS 7.0  
+     MSDOS 7.1, Windows 2k/XP, Windows Vista, Windows 7, Windows 8, Windows 10, FREEDOS, ReactOS, GRUB  
+New: use of image file names containg spaces or '='  
+New: echo of Filesys: 'offset' shown for CDROM if PBR is not on 2k-sectorborder  
+Bugfix: last sector on volume not always tested on (rd)  
+Bugfix: with switch /T for (rd) and total sector test  
+Bugfix: not compatible with partitions >= ~256GB  
+Bugfix: set echo of rd-Blocklist to REAL number of sectors in ram-disk  
+Bugfix: no export of VARS with /V (result only)  
+Bugfix: with switch /T 'number of hidden sectors is not correct' with hd-Blocklist starting at hidden number of sectors  
+Bugfix: handling of FILE with incomplete FAT  
+Bugfix: bad echo if FAT32 backupsector=0 (no backupsector)  
+
 Version 0.6.1  
 New: number of Root Directory Entries must MUST fit in whole number of sectors, or FAT-file system will be rejected as not valid  
 Bugfix: --skip=xxxxx bytes not working WITH FILE  
@@ -108,3 +124,4 @@ Version 0.2
 First published version  
 
 ### SCREENSHOTS
+![TEXTSTAT G4B FATINFO G4B version 0 7 after cleaning](https://github.com/user-attachments/assets/710fff42-2116-49ee-9f1c-6f562aff8a57)
