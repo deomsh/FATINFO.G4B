@@ -145,4 +145,12 @@ Example of use on harddisk with fat32 partition:
 Example of use on 3840KB floppy in ram-drive:
 ![FATINFO G4B v0 7 1 (rd) FAT12 bootfloppy 3840KB bootcode NT5](https://github.com/user-attachments/assets/d4583531-8b42-45e8-b604-4837686c7b2c)
 
-Example of use on fat12 boot-floppy:
+Example of test of 3840KB fat12 boot-floppy with Switch /T:
+![FATINFO G4B v0 7 1 (fd0) -T FAT12 bootfloppy 3840KB](https://github.com/user-attachments/assets/f65e8707-7584-4669-a66d-e7ce10195960)
+
+Example of use on image of MS-DOS 6.22 boot-floppy:
+![FATINFO G4B v0 7 1 (hd1,0)-msdos622 img bootflop-img](https://github.com/user-attachments/assets/51b74072-96ea-4674-92a8-ad0a1003e493)
+
+Example of use on hard-disk image with MS-DOS 7.1 fat16:
+![FATINFO G4B v0 7 1 (hd1,0)-hd27mb img FAT16](https://github.com/user-attachments/assets/6d2d84d5-f2cb-483c-923a-30b5267fceed)
+
