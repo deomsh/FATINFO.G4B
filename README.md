@@ -60,9 +60,10 @@ Example:  FATINFO.G4B (hd0,0) /A32 ;; set result
 Example:  FATINFO.G4B (hd0,0) /BC ;; set result
 Example:  FATINFO.G4B (hd0,0)/FDDIMAGE.IMG
 Example:  FATINFO.G4B --start=63 /HDDIMAGE.IMG
+Example:  FATINFO.G4B --skip=0x7E00 (hd0,0)/ELTORITO.ISO
 Example:  FATINFO.G4B (0xe0)0x2C+720
-Example:  FATINFO.G4B --partition=0 (hd0,0)44992028+2g
-Example:  FATINFO.G4B --start=63 (hd0,0)44992028+2g
+Example:  FATINFO.G4B --partition=0 (hd0,0)0x2AE861C+0x400000
+Example:  FATINFO.G4B --start=63 (hd0,0)0x2AE861C+0x400000
 Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --start=1929 (cd)</code></pre>    
 
@@ -153,4 +154,10 @@ Example of use on image of MS-DOS 6.22 boot-floppy:
 
 Example of use on hard-disk image with MS-DOS 7.1 fat16:
 ![FATINFO G4B v0 7 1 (hd1,0)-hd27mb img FAT16](https://github.com/user-attachments/assets/6d2d84d5-f2cb-483c-923a-30b5267fceed)
+
+Example of use on bootsector of El Torito iso with harddisk emulation (bootsector NOT on 2k-sector border):
+![FATINFO G4B v0 7 1 --skip=0x7E00 (hd0,0)-ELTORITO ISO with FAT12 not on 2k-sector border (sector 63 from MBR = El Torito harddisk emulation](https://github.com/user-attachments/assets/d44aa566-0f1c-4dd6-bc4a-732e8030ffd9)
+
+Example of how to access partition on harddisk image for test, with Long File Name and Switch /T:
+![FATINFO G4B v0 7 1 --partition=0 ''(hd0,0)-L F N = Harddisk IMG'' with FAT16 using (rd,0)](https://github.com/user-attachments/assets/89495428-005f-4bf3-adeb-689f4d0a55f5)
 
