@@ -1,10 +1,10 @@
-## FATINFO.G4B v0.7 (20250828), by deomsh
+## FATINFO.G4B v0.7.1 (20250906), by deomsh
 <pre><code>Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] [--hex] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] FILE [switch]
 Use 3:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] BLOCKLIST [switch]
 Use 4:    FATINFO.G4B [--mdbase=m] --start=n|--skip=N [--hex] DISK [switch]
-Switch:   /T|/TQ|/F|/FT|/A|/A32|/L|/L32|/B|/V
+Switch:   /T|/TQ|/F|/FT|/A|/A32|/L|/L32|/B|/BC|/V
 Help:     FATINFO.G4B [/?]
 Remarks:  DEVICE: existing FAT-devices (always with parentheses, no path allowed!)
             Ram-disk is treated as FILE (rd) or (rd,pt_num)
@@ -23,6 +23,7 @@ Remarks:  DEVICE: existing FAT-devices (always with parentheses, no path allowed
             Afterwards blocklist is available in (rd), partitions (rd,0) and up
             To get FAT info, size must be a least Hidden + Reserved + FAT sectors
           --hex to view in hex bootsectors and first sector of FAT(s)
+          Detected (standard) bootcodes: MS-DOS 3.3/4.0/5.0/7.1, Windows 2k/XP,Vista/10, FREEDOS, REACTOS, GRUB (fat); MS-DOS 7.1, Windows 2k/XP/Vista/7/10, FREEDOS, REACTOS, GRUB (fat32)
           grub4dos version 20170607 or higher
 Switch:   Only ONE switch allowed:
           /T tests: Fit on partition, Last sector valid, Media descriptor
@@ -39,9 +40,10 @@ Switch:   Only ONE switch allowed:
             (variable result=clusternumber)
           /L32 same, but count on FAT32 (variable result=clusternumber)
           /B quiet number of clusters marked as bad in FAT (variable result=number of bad clusters)
+          /BC quiet fat/ fat32 bootcode (variable result=Bootcode/Empty/Unknown)
           /V get quiet fat info on device. variables: FILESYS BYTEPSEC SECPCLUS
             RESERVED NUMFATS SECPFAT SECTRACK NUMHEADS ROOTENTR DEVSECT MEDIABYT
-            UUID + on fat32: CLUSFREE NEXTFREE (FSInfo)
+            UUID BOOTCODE + on fat32: CLUSFREE NEXTFREE (FSInfo)
 Example:  FATINFO.G4B (fd0)
 Example:  FATINFO.G4B (hd0,0)
 Example:  FATINFO.G4B (rd)
@@ -55,7 +57,7 @@ Example:  FATINFO.G4B (hd2,0) /FT ;; set result
 Example:  FATINFO.G4B (hd1,0) /V ;; set
 Example:  FATINFO.G4B (hd1,0) /L ;; set result
 Example:  FATINFO.G4B (hd0,0) /A32 ;; set result
-Example:  FATINFO.G4B (hd0,0) /B ;; set result
+Example:  FATINFO.G4B (hd0,0) /BC ;; set result
 Example:  FATINFO.G4B (hd0,0)/FDDIMAGE.IMG
 Example:  FATINFO.G4B --start=63 /HDDIMAGE.IMG
 Example:  FATINFO.G4B (0xe0)0x2C+720
@@ -65,6 +67,14 @@ Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --start=1929 (cd)</code></pre>    
 
 ### HISTORY
+Version 0.7  
+New: recognition of MS-DOS 7 bootcode with WINBOOT.SYS and of bootcode DELL OEM bootfloppy (OSR2)  
+Bugfix: Provider MSWIN4.0/ MSWIN4.1 not recognized, fat bootcode always MS-DOS 7.1 (harmless)  
+Bugfix: some echos with Switch /TQ (harmless)  
+Bugfix: all echos with Switch /A32 and /L32 on fat12/ fat16 (harmless)  
+Bugfix: all echos on fat12 with more than 12 sectors per FAT (harmless, but not according Microsoft specs)  
+Bugfix: variables not exported with Switch (bug introduced in v0.6)  
+
 Version 0.7  
 New: with --hex always pager on during operation (set to original status afterwards)  
 New: display of First Root Cluster on FAT32  
@@ -124,4 +134,15 @@ Version 0.2
 First published version  
 
 ### SCREENSHOTS
-![TEXTSTAT G4B FATINFO G4B version 0 7 after cleaning](https://github.com/user-attachments/assets/710fff42-2116-49ee-9f1c-6f562aff8a57)
+![FATINFO G4B v0 7 1 VERSION and TEXTSTAT](https://github.com/user-attachments/assets/47d1e2ca-7f2c-4d8a-a60d-834f53d803d1)
+
+Small Help:
+![FATINFO G4B v0 7 1 SmallHelp](https://github.com/user-attachments/assets/8f5fe603-e052-4338-a1d6-51b362d4fb30)
+
+Example of use on harddisk with fat32 partition:
+![FATINFO G4B v0 7 1 (hd0,0) on FAT32](https://github.com/user-attachments/assets/680af836-11c6-4f8d-89fb-acb93af2f13a)
+
+Example of use on 3840KB floppy in ram-drive:
+![FATINFO G4B v0 7 1 (rd) FAT12 bootfloppy 3840KB bootcode NT5](https://github.com/user-attachments/assets/d4583531-8b42-45e8-b604-4837686c7b2c)
+
+Example of use on fat12 boot-floppy:
