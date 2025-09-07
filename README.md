@@ -1,4 +1,4 @@
-## FATINFO.G4B v0.7.1 (20250906), by deomsh
+## FATINFO.G4B v0.7.1 (20250907), by deomsh
 <pre><code>Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] [--hex] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] FILE [switch]
@@ -61,20 +61,21 @@ Example:  FATINFO.G4B (hd0,0) /BC ;; set result
 Example:  FATINFO.G4B (hd0,0)/FDDIMAGE.IMG
 Example:  FATINFO.G4B --start=63 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --skip=0x7E00 (hd0,0)/ELTORITO.ISO
-Example:  FATINFO.G4B (0xe0)0x2C+720
+Example:  FATINFO.G4B (0xe0)0x15+720
 Example:  FATINFO.G4B --partition=0 (hd0,0)0x2AE861C+0x400000
 Example:  FATINFO.G4B --start=63 (hd0,0)0x2AE861C+0x400000
 Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
-Example:  FATINFO.G4B --start=1929 (cd)</code></pre>    
+Example:  FATINFO.G4B --start=1929 (0x9f)</code></pre>    
 
 ### HISTORY
-Version 0.7  
+Version 0.7.1  
 New: recognition of MS-DOS 7 bootcode with WINBOOT.SYS and of bootcode DELL OEM bootfloppy (OSR2)  
 Bugfix: Provider MSWIN4.0/ MSWIN4.1 not recognized, fat bootcode always MS-DOS 7.1 (harmless)  
 Bugfix: some echos with Switch /TQ (harmless)  
 Bugfix: all echos with Switch /A32 and /L32 on fat12/ fat16 (harmless)  
 Bugfix: all echos on fat12 with more than 12 sectors per FAT (harmless, but not according Microsoft specs)  
 Bugfix: variables not exported with Switch (bug introduced in v0.6)  
+Bugfix: argument --partition=n not working anymore
 
 Version 0.7  
 New: with --hex always pager on during operation (set to original status afterwards)  
@@ -135,29 +136,38 @@ Version 0.2
 First published version  
 
 ### SCREENSHOTS
-![FATINFO G4B v0 7 1 VERSION and TEXTSTAT](https://github.com/user-attachments/assets/47d1e2ca-7f2c-4d8a-a60d-834f53d803d1)
+![FATINFO G4B v0 7 1 VERSION and TEXTSTAT](https://github.com/user-attachments/assets/7c3470a4-0978-4e6f-a9e9-635702c306f8)
 
-Small Help:
-![FATINFO G4B v0 7 1 SmallHelp](https://github.com/user-attachments/assets/8f5fe603-e052-4338-a1d6-51b362d4fb30)
+#### Small Help:
+![FATINFO G4B v0 7 1 SmallHelp](https://github.com/user-attachments/assets/afcff970-40bb-4b63-87b5-b0237c85c045)
 
-Example of use on harddisk with fat32 partition:
-![FATINFO G4B v0 7 1 (hd0,0) on FAT32](https://github.com/user-attachments/assets/680af836-11c6-4f8d-89fb-acb93af2f13a)
+#### Example of use on harddisk with fat32 partition:
+![FATINFO G4B v0 7 1 (hd0,0) on FAT32](https://github.com/user-attachments/assets/b22a4342-ccd8-4168-89b0-ea05360bf598)
 
-Example of use on 3840KB floppy in ram-drive:
+#### Example of use on harddisk testing fat32 partition with Switch /T:
+![FATINFO G4B v0 7 1 (hd0,0) -T on FAT32](https://github.com/user-attachments/assets/d62fda37-6425-4489-a9fe-3b2b3bb6d720)
+
+#### Example of use on 3840KB floppy in ram-drive:
 ![FATINFO G4B v0 7 1 (rd) FAT12 bootfloppy 3840KB bootcode NT5](https://github.com/user-attachments/assets/d4583531-8b42-45e8-b604-4837686c7b2c)
 
-Example of test of 3840KB fat12 boot-floppy with Switch /T:
+#### Example of test of 3840KB fat12 boot-floppy with Switch /T:
 ![FATINFO G4B v0 7 1 (fd0) -T FAT12 bootfloppy 3840KB](https://github.com/user-attachments/assets/f65e8707-7584-4669-a66d-e7ce10195960)
 
-Example of use on image of MS-DOS 6.22 boot-floppy:
+#### Example of use on image of MS-DOS 6.22 boot-floppy:
 ![FATINFO G4B v0 7 1 (hd1,0)-msdos622 img bootflop-img](https://github.com/user-attachments/assets/51b74072-96ea-4674-92a8-ad0a1003e493)
 
-Example of use on hard-disk image with MS-DOS 7.1 fat16:
+#### Example of use on hard-disk image with MS-DOS 7.1 fat16:
 ![FATINFO G4B v0 7 1 (hd1,0)-hd27mb img FAT16](https://github.com/user-attachments/assets/6d2d84d5-f2cb-483c-923a-30b5267fceed)
 
-Example of use on bootsector of El Torito iso with harddisk emulation (bootsector NOT on 2k-sector border):
+#### Example of use on bootsector of El Torito iso with harddisk emulation (bootsector NOT on 2k-sector border):
 ![FATINFO G4B v0 7 1 --skip=0x7E00 (hd0,0)-ELTORITO ISO with FAT12 not on 2k-sector border (sector 63 from MBR = El Torito harddisk emulation](https://github.com/user-attachments/assets/d44aa566-0f1c-4dd6-bc4a-732e8030ffd9)
 
-Example of how to access partition on harddisk image for test, with Long File Name and Switch /T:
+#### Example of how to access partition on harddisk image for test, with Long File Name and Switch /T:
 ![FATINFO G4B v0 7 1 --partition=0 ''(hd0,0)-L F N = Harddisk IMG'' with FAT16 using (rd,0)](https://github.com/user-attachments/assets/89495428-005f-4bf3-adeb-689f4d0a55f5)
 
+#### Example of use on El Torito bootfloppy with blocklist (after finding bootoffset on CD-ROM with ISOINFO.G4B):
+![ISOINFO G4B --isobd (0xe0) finding El Torito Emulation and Bootoffset](https://github.com/user-attachments/assets/4682cced-8fdf-4a21-b919-93391995473b)
+![FATINFO G4B v0 7 1 (0xe0)0x15+720 1440K El Torito bootfloppy (FAT12)](https://github.com/user-attachments/assets/556b3bf6-64a5-49b9-a1ee-7c57a1865f49)
+
+#### Example of silent operation retrieving information with Switch /V:
+![FATINFO G4B v0 7 1 (hd1,0) -V on FAT32 (with set)](https://github.com/user-attachments/assets/2402e473-e4c5-497c-bc0e-2f96e3827374)
