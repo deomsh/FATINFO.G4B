@@ -173,12 +173,14 @@ First published version
 #### Example of how to access partition on harddisk image for test, with Long File Name and Switch /T:
 ![FATINFO G4B v0 7 1 --partition=0 ''(hd0,0)-L F N = Harddisk IMG'' with FAT16 using (rd,0)](https://github.com/user-attachments/assets/89495428-005f-4bf3-adeb-689f4d0a55f5)
 
-#### Example of use on El Torito bootfloppy with blocklist (after finding bootoffset on CD-ROM with ISOINFO.G4B):
-![ISOINFO G4B --isobd (0xe0) finding El Torito Emulation and Bootoffset](https://github.com/user-attachments/assets/4682cced-8fdf-4a21-b919-93391995473b)
-![FATINFO G4B v0 8 (0xe0)0x15+720](https://github.com/user-attachments/assets/5df59ab4-114f-45c6-95c1-1864f3d67f97)
-
 #### Example of silent operation retrieving information with Switch /V:
 ![FATINFO G4B v0 7 1 (hd1,0) -V on FAT32 (with set)](https://github.com/user-attachments/assets/2402e473-e4c5-497c-bc0e-2f96e3827374)
 
 #### Example of use on logical partition on harddisk image testing fat32 partition with --partition=4 and Switch /T:
 ![FATINFO G4B v0 8 --partition=4 (hd0,0)-35mfat32 img -T](https://github.com/user-attachments/assets/984d628b-db48-448c-94b2-3eceaf50da50)
+
+#### Example of use on El Torito bootfloppy with blocklist and hexview (after finding bootoffset on CD-ROM with ISOINFO.G4B):
+![ISOINFO G4B --isobd (0xe0) finding El Torito Emulation and Bootoffset](https://github.com/user-attachments/assets/4682cced-8fdf-4a21-b919-93391995473b)
+![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 A ](https://github.com/user-attachments/assets/0365e33e-9fde-425c-84bf-a6638d181c83)
+![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 B](https://github.com/user-attachments/assets/1c5a3041-b9b9-492a-84e7-f1628fa1bb88)
+![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 C](https://github.com/user-attachments/assets/3235e4b0-7287-4f46-b35e-e96e0f74de9b)
