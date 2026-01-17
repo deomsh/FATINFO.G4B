@@ -71,8 +71,8 @@ Example:  FATINFO.G4B --start=1929 (0x9f)</code></pre>
 ### HISTORY
 Version 0.8  
 New: with --hex first sector of root showed too  
-New: detection of Boot Codes CRC32-based only. If not known found read-out boot files like IO.SYS etcetera  
-New: test of start of FAT to overrule single boot-sectors  
+New: detection of Boot Codes CRC32-based only. If unknown read-out of (standard) boot-files like IO.SYS etcetera  
+New: test of start of FAT to sort-out single boot-sectors  
 New: read-out of partition 0-62 with --partition=n MBR-based only (no mapping to ram-disk anymore)  
 Change: test of hidden sectors less restrictive on FILE, DISK and BLOCKLIST  
 Change: some echos  
