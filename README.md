@@ -69,6 +69,15 @@ Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --start=1929 (0x9f)</code></pre>    
 
 ### HISTORY
+Version 0.8  
+New: with --hex first sector of root showed too  
+New: detection of Boot Codes CRC32-based only. If not known found read-out boot files like IO.SYS etcetera  
+New: test of start of FAT to overrule single boot-sectors  
+New: read-out of partition 0-62 with --partition=n MBR-based only (no mapping to ram-disk anymore)  
+Change: test of hidden sectors less restrictive on FILE, DISK and BLOCKLIST  
+Change: some echos  
+Bugfix: with --partition=0 'not good' in case 17/ 32 hidden sectors  
+
 Version 0.7.1  
 New: recognition of MS-DOS 7 bootcode with WINBOOT.SYS and of bootcode DELL OEM bootfloppy (OSR2)  
 Bugfix: Provider MSWIN4.0/ MSWIN4.1 not recognized, fat bootcode always MS-DOS 7.1 (harmless)  
@@ -154,7 +163,7 @@ First published version
 #### Example of use on image of MS-DOS 6.22 boot-floppy:
 ![FATINFO G4B v0 8 (hd0,0)-msdos622 img](https://github.com/user-attachments/assets/a1aaf56e-cf3a-4d12-a74c-4ffe8cc25cc6)
 
-#### Example of use on hard-disk image with MS-DOS 7.1 fat16:
+#### Example of use on hard-disk image with MS-DOS 7.1 fat12:
 ![FATINFO G4B v0 8 --start=63 (hd0,0)-hd27mb img](https://github.com/user-attachments/assets/a9b60380-988b-475a-bfdf-29aa3f74829a)
 
 #### Example of use on bootsector of El Torito iso with harddisk emulation (bootsector NOT on 2k-sector border):
