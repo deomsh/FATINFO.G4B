@@ -76,6 +76,7 @@ New: test of start of FAT to sort-out single boot-sectors
 New: read-out of partition 0-62 with --partition=n MBR-based only (no mapping to ram-disk anymore)  
 Change: test of hidden sectors less restrictive on FILE, DISK and BLOCKLIST  
 Change: some echos  
+Change: dropped 'Number of Root Directory Entries MUST fit in whole number of sectors'  
 Bugfix: with --partition=0 'not good' in case 17/ 32 hidden sectors  
 
 Version 0.7.1  
