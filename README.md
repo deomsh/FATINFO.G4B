@@ -181,6 +181,6 @@ First published version
 
 #### Example of use on El Torito bootfloppy with blocklist and hexview (after finding bootoffset on CD-ROM with ISOINFO.G4B):
 ![ISOINFO G4B --isobd (0xe0) finding El Torito Emulation and Bootoffset](https://github.com/user-attachments/assets/4682cced-8fdf-4a21-b919-93391995473b)
-![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 A ](https://github.com/user-attachments/assets/0365e33e-9fde-425c-84bf-a6638d181c83)
-![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 B](https://github.com/user-attachments/assets/1c5a3041-b9b9-492a-84e7-f1628fa1bb88)
-![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 C](https://github.com/user-attachments/assets/3235e4b0-7287-4f46-b35e-e96e0f74de9b)
+![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 A ](https://github.com/user-attachments/assets/501e2841-1e25-4cf7-b6b2-7346a2f2450c)
+![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 B](https://github.com/user-attachments/assets/c2e31aa7-ed1f-4cad-9f52-5631db672826)
+![FATINFO G4B v0 8 --hex (0xe0)0x15+720 1024 C](https://github.com/user-attachments/assets/756b4898-227a-447b-a998-b506f2596d2c)
