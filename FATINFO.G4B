@@ -1,5 +1,5 @@
 !BAT
-#-#+ FATINFO.G4B v0.8 (20260117), by deomsh
+#-#+ FATINFO.G4B v0.8.1 (20260124), by deomsh
 #-#+ Function: get file-system info (FAT-devices/ image files only)
 #-#+ Use 1 FATINFO.G4B [--mdbase=sector] [--hex] DEVICE switch
 #-#+ Use 2 FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=offset|--partition=n] [--hex] FILE switch
@@ -93,13 +93,17 @@ if %disk%==Y && if exist partitio &; if not exist start if not exist startsec if
 if %disk%==Y && if %CDROM%==Y && if not exist @uefi && setlocal && set /A diffsec=300m>>11 &; set CDtotsec=%diffsec% && set diff2sec=%diffsec% && call :getCDtotsec &; if not exist CDtotsec && echo Can not find total sectors on CD/DVD%NULL% && endlocal && set result=0 && set hexview=N && goto :endlocal ! endlocal && set CDtotsec=%CDtotsec% && set filesize=%CDtotsec% * 2k
 if %disk%==Y && if %CDROM%==Y && if exist @uefi &; raw cat --length=0 %device% > nul && set /a CDtotsec=*0x8290>>7 && set /A filesize=*0x8290 ! Can not find total sectors on CD/DVD && set result=0 && set hexview=N && goto :endlocal
 #NO RD used if NO (rd)#
-if %disk%==Y && if not %device:~0,3%==(rd && if not %CDROM%==Y && setlocal &; rootnoverify %device% && set /A devstart=*0x82A8&0xffffffff && set /a devsect=*0x82B0&0xfffffffff && root %rootorg% > nul &; if %devstart%==0 && set /a sectors=%devsect%-%startsec% &; endlocal && set FILE=%device%%0+%devsect% && set disk=Y && set device=
+if %disk%==Y && if not %device:~0,3%==(rd && if not %CDROM%==Y && setlocal &; rootnoverify %device% && set /A devstart=*0x82A8&0xffffffff && set /a devsect=*0x82B0&0xfffffffff && root %rootorg% > nul &; if %devstart%==0 && set /a sectors=%devsect%-%startsec% &; endlocal && set FILE=%device%%0+%devsect% && set disk=Y && set device= && set /a filesize=%devsect%<<9
+#BAD#if %disk%==Y && if not %device:~0,3%==(rd && if not %CDROM%==Y && setlocal &; rootnoverify %device% && set /A devstart=*0x82A8&0xffffffff && set /a devsect=*0x82B0&0xfffffffff && root %rootorg% > nul &; if %devstart%==0 && set /a sectors=%devsect%-%startsec% &; endlocal && set FILE=%device%%0+%devsect% && set disk=Y && set device=
 if exist partitio && if %device%==(rd) && setlocal &; set /A devstart=*0x82D0&0xffffffff && set /a devsect=*0x82D8&0xffffffff>>9 &; if %devstart%>=1m && if %devsect%>=8 && endlocal && set /a sectors=%devsect% && set FILE=%device%%0+%devsect% && set disk=Y && set RD=%device%%0 && set device= && set /a filesize=*0x82D8&0xffffffff && set disk= ! set result=0 && set hexview=N && goto :endlocal
 if exist partitio && if exist FILE && call :findstartsector &; if %result%==0 && echo Abort: start-sector of partition %partitio% not found%NULL% && set result=0 && set hexview=N && goto :endlocal ! set /a startsec=%result% && set result=1
-if %disk%==Y && if %device:~0,4%==(rd) && setlocal &; set /A devstart=*0x82D0 && set /a devsect=*0x82D8&0xfffffffff>>9 &; if %devstart%>=1m && if %devsect%>=8 && set /a sectors=%devsect%-%startsec% &; endlocal && set FILE=%device%%0+%devsect% && set disk=Y && set RD=%device%%%startsec% && set sectors=%sectors% && set device=
-if %disk%==Y && if %CDROM%==Y && setlocal &; set /a sectors=%CDtotsec%-%CDstart% &; endlocal && set FILE=%device%%0+%CDtotsec% && set disk=Y && set RD=%device%%%CDstart% && set sectors=%sectors% && set device=
+if %disk%==Y && if %device:~0,4%==(rd) && setlocal &; set /A devstart=*0x82D0 && set /a devsect=*0x82D8&0xfffffffff>>9 &; if %devstart%>=1m && if %devsect%>=8 && set /a sectors=%devsect%-%startsec% &; endlocal && set FILE=%device%%0+%devsect% && set disk=Y && set RD=%device%%%startsec% && set sectors=%sectors% && set device= && set /a filesize=%devsect%<<9
+#BAD##if %disk%==Y && if %device:~0,4%==(rd) && setlocal &; set /A devstart=*0x82D0 && set /a devsect=*0x82D8&0xfffffffff>>9 &; if %devstart%>=1m && if %devsect%>=8 && set /a sectors=%devsect%-%startsec% &; endlocal && set FILE=%device%%0+%devsect% && set disk=Y && set RD=%device%%%startsec% && set sectors=%sectors% && set device=
+if %disk%==Y && if %CDROM%==Y && setlocal &; set /a sectors=%CDtotsec%-%CDstart% &; endlocal && set FILE=%device%%0+%CDtotsec% && set disk=Y && set RD=%device%%%CDstart% && set sectors=%sectors% && set device= && set /a filesize=%CDtotsec%<<11
+#BAD?#if %disk%==Y && if %CDROM%==Y && setlocal &; set /a sectors=%CDtotsec%-%CDstart% &; endlocal && set FILE=%device%%0+%CDtotsec% && set disk=Y && set RD=%device%%%CDstart% && set sectors=%sectors% && set device=
 #Integration:BothTreatedAsBlocklist#
-if %block%==Y && set disk=Y
+if %block%==Y && set disk=Y &; if exist start && set devstart=%start%
+#ORG#if %block%==Y && set disk=Y
 if not exist startsec && set startsec=0
 if exist start && set start=0
 if %CDROM%==Y && if not exist CDstart && set CDstart=0
@@ -262,9 +266,7 @@ if not /i %filesys%==fat32 && if %secpfat%<=0xFFFF && echo Number of sectors per
 echo Sectors per track: %sectrack%
 echo Number of heads: %numheads%
 if %hiddsect%==0 &; echo Number of hidden sectors before: %hiddsect%
-#ORG#if %hiddsect%==0 &; echo Number of hidden sectors before start of volume: %hiddsect%
 if not %hiddsect%==0 &; echo Number of hidden sectors before: %hiddsect%
-#ORG#if not %hiddsect%==0 &; echo Number of hidden sectors before start of partition: %hiddsect%
 echo Total number of sectors: %devsect%
 if not %secpfat%>=0x10000 if not /i %filesys%==fat32 || echo Number of sectors per FAT: %secpfat%
 if not %extbtsig%==0x28 if not %extbtsig%==0x29 |; if %BSdrvnum%<=0x7E && if not %BSdrvnum%==0x21 && if not %BSdrvnum%==0x23 && echo Drive type: removable ! if %BSdrvnum%==0x21 && echo Drive type: network boot device (pxe) ! if %BSdrvnum%==0x23 && echo Drive type: Fbinst hidden partition (ud) ! if %BSdrvnum%==0x7F && echo Drive type: random memory storage ! if %BSdrvnum%>=0x80 && if %BSdrvnum%<=0x9F && echo Drive type: fixed ! echo Drive type: unknown
@@ -518,6 +520,7 @@ goto :eof
 ::
 :CHSLBAbalancetest
 setlocal
+if exist devstart && if exist start &; if %CDROM%==Y && set /a start=%devstart% * 4 + %start% ! set /a start=%devstart%+%start%
 set /a HS=%numheads% * %sectrack% && set /a totsect=%devsect%+%hiddsect%
 set /a tracks=%totsect%/%HS% &; if %numheads%<=2 && echo Number of tracks: %tracks%%%NULL% ! echo Number of cylinders: %tracks%%%NULL%
 calc %totsect% % %HS% || echo CHS and LBA values are balanced%NULL% ! if not %sectrack%==63 && if not %numheads%==255 && echo $[0x0F]CHS and LBA values are NOT balanced%NULL% ! echo Unknown if CHS and LBA values are balanced%NULL%
@@ -550,12 +553,9 @@ if not %test%==Y &; set /a needsect=%numfats% * %secpfat% + %reserved% + %starts
 if exist @uefi &; if not %device:~1,2%==rd && set rootOK=Y && rootnoverify %device% > nul
 if not exist @uefi && if not %CDROM%==Y && set rootOK=Y && rootnoverify %device% > nul
 if %hiddsect%==0 &; if %rootOK%==Y &; set /a ptstart=*0x82A8 &; if not %ptstart%==%hiddsect% && if not exist RD && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! if not exist RD && echo Number of hidden sectors before is correct%NULL% ! if %ptstart%==%hiddsect% && echo Number of hidden sectors before is correct%NULL% ! echo No test of number of hidden sectors before%NULL%
-#ORG#if %hiddsect%==0 &; if %rootOK%==Y &; set /a ptstart=*0x82A8 &; if not %ptstart%==%hiddsect% && if not exist RD && echo $[0x0F]Number of hidden sectors before start of volume is not correct%NULL% && set result=0 ! if not exist RD && echo Number of hidden sectors before start of volume is correct%NULL% ! if %ptstart%==%hiddsect% && echo Number of hidden sectors before start of volume is correct%NULL% ! echo No test of number of hidden sectors before start of volume%NULL%
 if %device:~-3,1%==, && set partitio=%device:~-2,1% ! if %device:~-4,1%==, && set partitio=%device:~-3,2%
 if not %partitio%>=4 && if not %hiddsect%==0 &; if %rootOK%==Y &; set /a ptstart=*0x82A8 &; if not %ptstart%==%hiddsect% && if not exist RD && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! if not exist RD && echo Number of hidden sectors before is correct%NULL% ! if exist partitio && if %ptstart%==%hiddsect% && echo Number of hidden sectors before is correct%NULL% ! echo No test of number of hidden sectors before%NULL%
-#ORG#if not %partitio%>=4 && if not %hiddsect%==0 &; if %rootOK%==Y &; set /a ptstart=*0x82A8 &; if not %ptstart%==%hiddsect% && if not exist RD && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not exist RD && echo Number of hidden sectors before start of partition is correct%NULL% ! if exist partitio && if %ptstart%==%hiddsect% && echo Number of hidden sectors before start of partition is correct%NULL% ! echo No test of number of hidden sectors before start of partition/ volume%NULL%
 if %partitio%>=4 && if not %hiddsect%==0 &; if %rootOK%==Y &; set /a ptstart=*0x82A8 &; if not %ptstart%==%hiddsect% && if not exist RD && echo Number of hidden sectors before start of logical partition is not equal%NULL% ! if not exist RD && echo Number of hidden sectors before is correct%NULL% ! echo No test of number of hidden sectors before%NULL%
-#ORG#if %partitio%>=4 && if not %hiddsect%==0 &; if %rootOK%==Y &; set /a ptstart=*0x82A8 &; if not %ptstart%==%hiddsect% && if not exist RD && echo Number of hidden sectors before start of logical partition is not equal%NULL% ! if not exist RD && echo Number of hidden sectors before start of partition is correct%NULL% ! echo No test of number of hidden sectors before start of partition/ volume%NULL%
 if %hiddsect%==0 && if %device:~1,2%==rd &; set /a rdsect=*0x82D8/%bytepsec%&0xffffffff ! set rdsect=%sectors% &; if not %rdsect%>=%devsect% && echo $[0x0F]Total number of sectors exceeds number of sectors on volume%NULL% && set result=0 ! echo Total number of sectors fits on volume%NULL% && set totsecOK=Y
 #BadNow#if %hiddsect%==0 && if %device:~1,2%==rd &; set /a rdsect=*0x82D8/%bytepsec%&0xffffffff ! set rdsect=%sectors% &; if not %rdsect%>=%devsect% && echo $[0x0F]Total number of sectors exceeds number of sectors on volume%NULL% && endlocal && set rdsect=%rdsect% && set result=0 && goto :eof ! echo Total number of sectors fits on volume%NULL% && endlocal && set rdsect=%rdsect% && set result=%result% && set totsecOK=Y && goto :eof
 if %test%==Y && if not %hiddsect%==0 && if %device:~1,2%==rd &; set /a rdsect=*0x82D8/%bytepsec%&0xffffffff ! set rdsect=%sectors% &; if not %rdsect%>=%devsect% && echo $[0x0F]Total number of sectors exceeds number of sectors on partition%NULL% ! echo Total number of sectors fits on partition%NULL%
@@ -584,13 +584,12 @@ if %FILE:~0,3%==(rd &; if not %disk%==Y && set /A filelen=*0x82D8 ! set /A filel
 if %FILE:~0,3%==(rd &; if %disk%==Y &; raw cat --length=0 %FILE% && set /A filelen=*0x8290 &; set /A checklen=-%bytepsec% * %startsec% + %filelen%
 #TooMuch?#if %hiddsect%==0 &; set /a ptstart=%startsec% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && if not /i %EXT%==.iso && echo $[0x0F]Number of hidden sectors before start of volume is not correct%NULL% && set result=0 ! if not /i %EXT%==.iso && echo Number of hidden sectors before start of volume is correct%NULL% ! echo No test of number of hidden sectors before start of volume%NULL%
 if %hiddsect%==0 &; set /a ptstart=%startsec% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && if not /i %EXT%==.iso && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! echo Number of hidden sectors before is correct%NULL%
-#ORG#if %hiddsect%==0 &; set /a ptstart=%startsec% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && if not /i %EXT%==.iso && echo $[0x0F]Number of hidden sectors before start of volume is not correct%NULL% && set result=0 ! echo Number of hidden sectors before start of volume is correct%NULL%
 #NEWforBlocklistOnPartition#
-#DEBUG#echo %0 block=%block% disk=%disk% RD=%RD% rootOK=%rootOK% hiddsect=%hiddsect% startsec=%startsec% start=%start%
-if %disk%==Y &; call Fn.11 "%FILE%" "," &; rootnoverify %FILE% > nul && set /a ptstart=*0x82A8&0xffffffff ! set ptstart= &; root %rootorg% > nul
-#DEBUG#echo A ptstart=%ptstart%
-if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% ! if %disk%==Y && echo Number of hidden sectors before is not equal%NULL% ! echo Number of hidden sectors before is correct%NULL%
-#ORG#if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% ! if %disk%==Y && echo Number of hidden sectors before start of partition is not equal%NULL% ! echo Number of hidden sectors before start of partition is correct%NULL%
+if %disk%==Y && if not %devstart%>=1 &; call Fn.11 "%FILE%" "," &; rootnoverify %FILE% > nul && set /a ptstart=*0x82A8&0xffffffff ! set ptstart= &; root %rootorg% > nul
+if %disk%==Y && if %devstart%>=1 && set /a ptstart=%startsec%+%devstart%
+#BAD#if %disk%==Y &; call Fn.11 "%FILE%" "," &; rootnoverify %FILE% > nul && set /a ptstart=*0x82A8&0xffffffff ! set ptstart= &; root %rootorg% > nul
+#DEBUG#echo %0 block=%block% devstart=%devstart% disk=%disk% RD=%RD% rootOK=%rootOK% hiddsect=%hiddsect% startsec=%startsec% start=%start% ptstart=%ptstart%
+if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! if %ptstart%==%hiddsect% && if %block%==Y && echo Number of hidden sectors before is correct%NULL% ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% ! if %disk%==Y && echo Number of hidden sectors before is not equal%NULL% ! echo Number of hidden sectors before is correct%NULL%
 #Too Strict#if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! echo Number of hidden sectors before start of partition is correct%NULL%
 if %partitio%>=4 && if not %hiddsect%==0 &; if not %hiddsect%==%hiddsectL% && echo $[0x0F]Number of hidden sectors before start of logical partition is not correct%NULL% && set result=0 ! echo Number of hidden sectors before start of logical partition is correct%NULL%
 #BAD#if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && if not %partitio%>=4 && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not %ptstart%==%hiddsect% && if %partitio%>=4 && echo Number of hidden sectors before start of logical partition is not equal%NULL% ! if not %partitio%>=4 && echo Number of hidden sectors before start of partition is correct%NULL%
@@ -613,6 +612,7 @@ if not exist FILE && if not %device:~0,3%==(rd && cmp %device%%0+1 %device%%%bac
 if %@retval%==0 && set result=0 ! set OK=1
 set /a bootsec2=%backsect%+1
 #ToTest#if exist FILE && set /A mdbase2=%mdbase%+2 && set /a fileskip=%startsec% * 512 &; set /a backskip=%bootsec2% * 512 + %fileskip% && set /a fileskip=%FSinfosc% * 512 + %fileskip% && set /a countbyt=2 * 512 &; raw dd if=%FILE% of=(md)%mdbase%+2 bs=1 count=%countbyt% skip=%fileskip% > nul && raw dd if=%FILE% of=(md)%mdbase2%+2 bs=1 count=%countbyt% skip=%backskip% > nul
+#ORG#
 if exist FILE && set /A mdbase2=%mdbase%+2 && set /a fileskip=%startsec% * 512 &; set /a backskip=%bootsec2% * %bytepsec% + %fileskip% && set /a fileskip=%FSinfosc% * %bytepsec% + %fileskip% && set /a countbyt=2 * %bytepsec% &; raw dd if=%FILE% of=(md)%mdbase%+2 bs=1 count=%countbyt% skip=%fileskip% > nul && raw dd if=%FILE% of=(md)%mdbase2%+2 bs=1 count=%countbyt% skip=%backskip% > nul
 if not exist FILE && set /A mdbase2=%mdbase%+2 &; raw dd if=%device%%%FSinfosc%+2 of=(md)%mdbase%+2 > nul && raw dd if=%device%%%bootsec2%+2 of=(md)%mdbase2%+2 > nul
 cmp --skip=0x200 (md)%mdbase%+2 (md)%mdbase2%+2
@@ -758,7 +758,6 @@ if %~1==FILE && set /a skip=%startsec% * 512 &; raw dd if=%FILE% of=(md)%mdbase%
 set /A base=%mdbase% * 0x200
 set /A address=%base%
 read %address% > nul ;; set /A jmpBoot=%@retval%&0xffffff ;; set jmpBoot=000000%jmpBoot:~2% ;; set jmpBoot=0x%jmpBoot:~-6,6%
-#BUG#read %address% > nul ;; set /A jmpBoot=%@retval%&0xffffff
 set /A address=%base%+0x3
 cat --skip=3 --length=8 (md)%mdbase%+1 | set OEMName=
 set /A address=%base%+0xB
@@ -766,7 +765,7 @@ set /A address=%base%+0xB
 read %address% > nul ;; set /a bytepsec=%@retval%&0xffff
 #In:fatintegritytest# &; if %bytepsec%==0 && endlocal && echo Abort: Bytes per Sector is zero, not a fat-device && set result=0 && goto :eof
 #In:fatintegritytest#calc %bytepsec% % 32 &;  && endlocal && echo Abort: Unsupported, Bytes per Sector is not a multiple of 32 && set result=0 && goto :eof
-#NormalCase%calc %bytepsec% % 512 &;  && endlocal && echo Abort: Unsupported, Bytes per Sector is not a multiple of 512 && set result=0 && goto :eof
+#NormalCase#calc %bytepsec% % 512 &;  && endlocal && echo Abort: Unsupported, Bytes per Sector is not a multiple of 512 && set result=0 && goto :eof
 set /A address=%base%+0xD
 read %address% > nul ;; set /a secpclus=%@retval%&0xff
 #In:fatintegritytest# &; if %secpclus%==0 && endlocal && echo Abort: no valid fat-device, Sectors per Cluster is zero && set result=0 && goto :eof
@@ -1027,7 +1026,7 @@ goto :spaceloop
 :help
 setlocal
 pager status > nul ;; set pagersts=%@retval% > nul ;; pager on
-echo FATINFO.G4B v0.8 (20260117), by deomsh (grub4dos version 20170607 or higher)
+echo FATINFO.G4B v0.8.1 (20260124), by deomsh (grub4dos version 20170607 or higher)
 echo Function Get FAT-info (no switch), or switch: basic tests or return variable(s)
 :smallhelp
 echo -e Use 1    FATINFO.G4B [--mdbase=m] [--hex] DEVICE [switch]
