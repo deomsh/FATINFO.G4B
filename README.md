@@ -70,7 +70,7 @@ Example:  FATINFO.G4B --start=1929 (0x9f)</code></pre>
 
 ### HISTORY
 Version 0.8.2  
-Maintanance update  
+Maintenance update  
 
 Version 0.8.1  
 Bugfix: test of volume/ partition starts at begin of a head on disk/ blocklist  
