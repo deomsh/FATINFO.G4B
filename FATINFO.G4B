@@ -1,5 +1,5 @@
 !BAT
-#-#+ FATINFO.G4B v0.8.1 (20260124), by deomsh
+#-#+ FATINFO.G4B v0.8.2 (20260202), by deomsh
 #-#+ Function: get file-system info (FAT-devices/ image files only)
 #-#+ Use 1 FATINFO.G4B [--mdbase=sector] [--hex] DEVICE switch
 #-#+ Use 2 FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=offset|--partition=n] [--hex] FILE switch
@@ -584,12 +584,13 @@ if %FILE:~0,3%==(rd &; if not %disk%==Y && set /A filelen=*0x82D8 ! set /A filel
 if %FILE:~0,3%==(rd &; if %disk%==Y &; raw cat --length=0 %FILE% && set /A filelen=*0x8290 &; set /A checklen=-%bytepsec% * %startsec% + %filelen%
 #TooMuch?#if %hiddsect%==0 &; set /a ptstart=%startsec% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && if not /i %EXT%==.iso && echo $[0x0F]Number of hidden sectors before start of volume is not correct%NULL% && set result=0 ! if not /i %EXT%==.iso && echo Number of hidden sectors before start of volume is correct%NULL% ! echo No test of number of hidden sectors before start of volume%NULL%
 if %hiddsect%==0 &; set /a ptstart=%startsec% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && if not /i %EXT%==.iso && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! echo Number of hidden sectors before is correct%NULL%
-#NEWforBlocklistOnPartition#
+# NEW for Blocklist On Partition #
 if %disk%==Y && if not %devstart%>=1 &; call Fn.11 "%FILE%" "," &; rootnoverify %FILE% > nul && set /a ptstart=*0x82A8&0xffffffff ! set ptstart= &; root %rootorg% > nul
 if %disk%==Y && if %devstart%>=1 && set /a ptstart=%startsec%+%devstart%
 #BAD#if %disk%==Y &; call Fn.11 "%FILE%" "," &; rootnoverify %FILE% > nul && set /a ptstart=*0x82A8&0xffffffff ! set ptstart= &; root %rootorg% > nul
-#DEBUG#echo %0 block=%block% devstart=%devstart% disk=%disk% RD=%RD% rootOK=%rootOK% hiddsect=%hiddsect% startsec=%startsec% start=%start% ptstart=%ptstart%
-if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! if %ptstart%==%hiddsect% && if %block%==Y && echo Number of hidden sectors before is correct%NULL% ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% ! if %disk%==Y && echo Number of hidden sectors before is not equal%NULL% ! echo Number of hidden sectors before is correct%NULL%
+#DEBUG#echo %0 disk=%disk% block=%block% partitio=%partitio% devstart=%devstart% disk=%disk% RD=%RD% rootOK=%rootOK% hiddsect=%hiddsect% startsec=%startsec% start=%start% ptstart=%ptstart%
+if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! if %ptstart%==%hiddsect% && if %block%==Y && echo Number of hidden sectors before is correct%NULL% ! if %ptstart%==%hiddsect% && if exist partitio && echo Number of hidden sectors before is correct%NULL% ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% ! if %disk%==Y && echo Number of hidden sectors before is not equal%NULL% ! echo Number of hidden sectors before is correct%NULL%
+#pause %0 "if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% && set result=0 ! if %ptstart%==%hiddsect% && if %block%==Y && echo Number of hidden sectors before is correct%NULL% ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before is not correct%NULL% ! if %disk%==Y && echo Number of hidden sectors before is not equal%NULL% ! echo Number of hidden sectors before is correct%NULL%
 #Too Strict#if not %partitio%>=4 && if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! echo Number of hidden sectors before start of partition is correct%NULL%
 if %partitio%>=4 && if not %hiddsect%==0 &; if not %hiddsect%==%hiddsectL% && echo $[0x0F]Number of hidden sectors before start of logical partition is not correct%NULL% && set result=0 ! echo Number of hidden sectors before start of logical partition is correct%NULL%
 #BAD#if not %hiddsect%==0 &; if not exist ptstart && set /a ptstart=%startsec%+%start% ! set ptstart=%ptstart% &; if not %ptstart%==%hiddsect% && if not %disk%==Y && if not %partitio%>=4 && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not %ptstart%>=%hiddsect% && if %disk%==Y && echo $[0x0F]Number of hidden sectors before start of partition is not correct%NULL% && set result=0 ! if not %ptstart%==%hiddsect% && if %partitio%>=4 && echo Number of hidden sectors before start of logical partition is not equal%NULL% ! if not %partitio%>=4 && echo Number of hidden sectors before start of partition is correct%NULL%
@@ -612,7 +613,6 @@ if not exist FILE && if not %device:~0,3%==(rd && cmp %device%%0+1 %device%%%bac
 if %@retval%==0 && set result=0 ! set OK=1
 set /a bootsec2=%backsect%+1
 #ToTest#if exist FILE && set /A mdbase2=%mdbase%+2 && set /a fileskip=%startsec% * 512 &; set /a backskip=%bootsec2% * 512 + %fileskip% && set /a fileskip=%FSinfosc% * 512 + %fileskip% && set /a countbyt=2 * 512 &; raw dd if=%FILE% of=(md)%mdbase%+2 bs=1 count=%countbyt% skip=%fileskip% > nul && raw dd if=%FILE% of=(md)%mdbase2%+2 bs=1 count=%countbyt% skip=%backskip% > nul
-#ORG#
 if exist FILE && set /A mdbase2=%mdbase%+2 && set /a fileskip=%startsec% * 512 &; set /a backskip=%bootsec2% * %bytepsec% + %fileskip% && set /a fileskip=%FSinfosc% * %bytepsec% + %fileskip% && set /a countbyt=2 * %bytepsec% &; raw dd if=%FILE% of=(md)%mdbase%+2 bs=1 count=%countbyt% skip=%fileskip% > nul && raw dd if=%FILE% of=(md)%mdbase2%+2 bs=1 count=%countbyt% skip=%backskip% > nul
 if not exist FILE && set /A mdbase2=%mdbase%+2 &; raw dd if=%device%%%FSinfosc%+2 of=(md)%mdbase%+2 > nul && raw dd if=%device%%%bootsec2%+2 of=(md)%mdbase2%+2 > nul
 cmp --skip=0x200 (md)%mdbase%+2 (md)%mdbase2%+2
@@ -761,7 +761,6 @@ read %address% > nul ;; set /A jmpBoot=%@retval%&0xffffff ;; set jmpBoot=000000%
 set /A address=%base%+0x3
 cat --skip=3 --length=8 (md)%mdbase%+1 | set OEMName=
 set /A address=%base%+0xB
-#NEW#
 read %address% > nul ;; set /a bytepsec=%@retval%&0xffff
 #In:fatintegritytest# &; if %bytepsec%==0 && endlocal && echo Abort: Bytes per Sector is zero, not a fat-device && set result=0 && goto :eof
 #In:fatintegritytest#calc %bytepsec% % 32 &;  && endlocal && echo Abort: Unsupported, Bytes per Sector is not a multiple of 32 && set result=0 && goto :eof
@@ -804,7 +803,7 @@ read %address% > nul ;; if not %extbtsig%==0x28 if not %extbtsig%==0x29 || set /
 #CheckHereForValidTotalSectors#
 if %totsect%==0 && set /A address=%base%+0x20
 if %totsect%==0 && read %address% > nul ;; if %totsect%==0 && set /a totsect=%@retval%&0xffffffff
-#ORG#if %totsect%==0 && read %address% > nul &; set /a totsect=%@retval%&0xffffffff
+#BAD??#if %totsect%==0 && read %address% > nul &; set /a totsect=%@retval%&0xffffffff
 ## TEST here, not in :fatintegritytest is OK
 if %totsect%==0 && echo Abort: no valid fat-device, Total number of Sectors is zero%NULL% && set result=0 && goto :eof
 if %secpfat%==0 && set /A address=%base%+0x24
@@ -878,7 +877,7 @@ if /i %filesys%==FAT32 &; raw cat --skip=90 --locate=\x00 (md)%mdbase%+1 > nul &
 set /A mdbase2=%mdbase%+1 && if /i %filesys%==FAT32 && set /A mdbase3=%mdbase%+2 && set /A mdbase4=%mdbase%+3
 if /i %filesys%==FAT32 && set codenum=20 && goto :FAT32bootcode ! set codenum=0
 :FATbootcode
-if %codenum%>=11 &; cat --locate="IBMBIO  COM" (md)%mdbase%+1 > nul && set bootcode=IBMBIO.COM ! cat --locate="IO      SYS" (md)%mdbase%+1 > nul && set bootcode=IO.SYS ! cat --locate="NTLDR      " (md)%mdbase%+1 > nul && set bootcode=NTLDR ! cat --locate="BOOTMGR    " (md)%mdbase%+1 > nul && set bootcode=BOOTMGR ! cat --locate="KERNEL  SYS" (md)%mdbase%+1 > nul && set bootcode=KERNEL.SYS ! cat --locate="FREELDR SYS" (md)%mdbase%+1 > nul && set bootcode=FREELDR.SYS ! cat --locate="GRLDR      " (md)%mdbase%+1 > nul && set bootcode=GRLDR ! set bootcode=Unknown &; endlocal && set bootcode=%bootcode% && goto :eof
+if %codenum%>=11 &; cat --locate="IBMBIO  COM" (md)%mdbase%+1 > nul && set bootcode=IBMBIO.COM ! cat --locate="IO      SYS" (md)%mdbase%+1 > nul && set bootcode=IO.SYS ! cat --locate="NTLDR      " (md)%mdbase%+1 > nul && set bootcode=NTLDR ! cat --locate="BOOTMGR    " (md)%mdbase%+1 > nul && set bootcode=BOOTMGR ! cat --locate="KERNEL  SYS" (md)%mdbase%+1 > nul && set bootcode=KERNEL.SYS ! cat --locate="FREELDR SYS" (md)%mdbase%+1 > nul && set bootcode=FREELDR.SYS ! cat --locate="GRLDR      " (md)%mdbase%+1 > nul && set bootcode=GRLDR ! set bootcode=Unknown &; endlocal && set "bootcode=boot %bootcode%" && goto :eof
 echo -n > (md)%mdbase2%+1 && set S1= && set L1= && set S2= && set L2=
 if %codenum%==0 &; set "bootcode=MS-DOS 3.3" && set S1=0x3E && set L1=0x148 && set S2=0x1E0 && set L2=0x16 && set BCCRC32=0x274bbacc
 if %codenum%==1 &; set "bootcode=MS-DOS 4.0" && set S1=0x3E && set L1=0x154 && set S2=0x1DB && set L2=0x16 && set BCCRC32=0x95cc9901
@@ -906,7 +905,7 @@ if not %CRC32%==%BCCRC32% && set bootcode= && set /a codenum=%codenum%+1 && goto
 endlocal && set "bootcode=%bootcode%"
 goto :eof
 :FAT32bootcode
-if %codenum%>=28 &; cat --locate="IBMBIO  COM" (md)%mdbase%+1 > nul && set bootcode=IBMBIO.COM ! cat --locate="IO      SYS" (md)%mdbase%+1 > nul && set bootcode=IO.SYS ! cat --locate="NTLDR      " (md)%mdbase%+1 > nul && set bootcode=NTLDR ! cat --locate="BOOTMGR    " (md)%mdbase%+1 > nul && set bootcode=BOOTMGR ! cat --locate="KERNEL  SYS" (md)%mdbase%+1 > nul && set bootcode=KERNEL.SYS ! cat --locate="FREELDR SYS" (md)%mdbase%+1 > nul && set bootcode=FREELDR.SYS ! cat --locate="GRLDR      " (md)%mdbase%+1 > nul && set bootcode=GRLDR ! set bootcode=Unknown &; endlocal && set bootcode=%bootcode% && goto :eof
+if %codenum%>=28 &; cat --locate="IBMBIO  COM" (md)%mdbase%+1 > nul && set bootcode=IBMBIO.COM ! cat --locate="IO      SYS" (md)%mdbase%+1 > nul && set bootcode=IO.SYS ! cat --locate="NTLDR      " (md)%mdbase%+1 > nul && set bootcode=NTLDR ! cat --locate="BOOTMGR    " (md)%mdbase%+1 > nul && set bootcode=BOOTMGR ! cat --locate="KERNEL  SYS" (md)%mdbase%+1 > nul && set bootcode=KERNEL.SYS ! cat --locate="GRLDR      " (md)%mdbase%+1 > nul && set bootcode=GRLDR ! cat --locate="FREELDR SYS" (md)%mdbase%+1 > nul && set bootcode=FREELDR.SYS ! cat --locate="FREELDR SYS" (md)%mdbase4%+1 > nul && set bootcode=FREELDR.SYS ! set bootcode=Unknown &; endlocal && set "bootcode=boot %bootcode%" && goto :eof
 echo -n > (md)%mdbase2%+1 && echo -n > (md)%mdbase4%+1 && set S1= && set L1= && set S2= && set L2= && set S3= && set L3= && set sect= && set skip1= && set skip3=
 if %codenum%==20 &; set "bootcode=MS-DOS 7.1" && set S1=0x5A && set L1=0x128 && set S2=0x1D8 && set L2=0x28 && set S3=0 && set L3=0x186 && set sect=2 && set /A skip3=%skip%+0x400 && set BCCRC32A=0xb36d57ea && set BCCRC32B=0x8d519e27
 if %codenum%==21 &; set "bootcode=Windows 2k/XP" && set S1=0x5A && set L1=0x152 && set S2=0x1e8 && set L2=0x18 && set S3=0 && set L3=0x147 && set sect=12 && set /A skip3=%skip%+0x1800 && set BCCRC32A=0xe706909b && set BCCRC32B=0x25669c6d
@@ -916,8 +915,9 @@ if %codenum%==23 && set /a codenum=%codenum%+1
 #UNUSEDNOW#if %codenum%==23 &; set "bootcode=Windows 7" && set S1=0x5A && set L1=0x106 && set S2=0x1ea && set L2=0x16 && set S3=0 && set L3=0x147 && set sect=12 && set /A skip3=%skip%+0x1800 && set BCCRC32A=0x5d0e683d && set BCCRC32B=0x695f28dd
 if %codenum%==24 &; set "bootcode=Windows 10" && set S1=0x5A && set L1=0x121 && set S2=0x1F8 && set L2=0x4 && set S3=0x6E && set L3=0x157 && set sect=12 && set /A skip3=%skip%+0x1800 && set BCCRC32A=0x2dad97bb && set BCCRC32B=0x5aed1930
 if %codenum%==25 &; set bootcode=FREEDOS && set S1=0x5A && set L1=0x167 && set S2=0x1F1 && set L2=0xB && set BCCRC32A=0xc4f4353d
-if %codenum%==26 &; set bootcode=REACTOS && set S1=0x5A && set L1=0x159 && set S2=0x1F3 && set L2=0x9 && set S3=0 && set L3=0x185 && set sect=14 && set /A skip3=%skip%+0x1C00 && set BCCRC32A=0x8f1952b5 && set BCCRC32B=0x04d6a62c
-if %codenum%==27 &; set bootcode=GRUB && set S1=0x5A && set L1=0x153 && set S2= && set L2= && set BCCRC32A=0x5ad79713
+if %codenum%==26 &; set bootcode=GRUB && set S1=0x5A && set L1=0x153 && set S2= && set L2= && set BCCRC32A=0x5ad79713
+if %codenum%==27 &; set bootcode=REACTOS && set S1=0x5A && set L1=0x159 && set S2=0x1F3 && set L2=0x9 && set S3=0 && set L3=0x200 && set sect=14 && set /A skip3=%skip%+0x1C00 && set BCCRC32A=0x8f1952b5 && set BCCRC32B=0x04d6a62c
+#BAD#if %codenum%==27 &; set bootcode=REACTOS && set S1=0x5A && set L1=0x159 && set S2=0x1F3 && set L2=0x9 && set S3=0 && set L3=0x185 && set sect=14 && set /A skip3=%skip%+0x1C00 && set BCCRC32A=0x8f1952b5 && set BCCRC32B=0x04d6a62c
 #FORNEXTONE#if %codenum%== &; set bootcode= && set S1=0x5A && set L1= && set S2= && set L2= && set S3= && set L3= && set sect= && set /A skip3=%skip%+ && set BCCRC32A=0x && set BCCRC32B=0x
 if not exist FILE &; raw dd if=%device%%0+1 of=(md)%mdbase2%+1 bs=1 count=%L1% skip=%S1% seek=%S1%
 if not exist FILE && if exist S2 && if exist L2 &; raw dd if=%device%%0+1 of=(md)%mdbase2%+1 bs=1 count=%L2% skip=%S2% seek=%S2%
@@ -927,14 +927,14 @@ crc32 (md)%mdbase2%+1 > nul ;; set /A CRC32A=%@retval%&0xffffffff
 #DEBUG#pause codenum=%codenum% CRC32A=%CRC32A%
 #DEBUG#if %codenum%== &; cat --hex (md)%mdbase%+1 && pause
 #DEBUG#if %codenum%== &; endlocal && set "bootcode=%bootcode%" && goto :eof
-if not %CRC32A%==%BCCRC32A% && set bootcode= && set /a codenum=%codenum%+1 && goto :FAT32bootcode
+if not %CRC32A%==%BCCRC32A% && if not %codenum%==27 && set bootcode= && set /a codenum=%codenum%+1 && goto :FAT32bootcode
 #IfBootCodeIsOnlyOneSector#
-if not %codenum%==25 if not %codenum%==27 |; endlocal && set "bootcode=%bootcode%" && goto :eof
+if not %codenum%==25 if not %codenum%==26 |; endlocal && set "bootcode=%bootcode%" && goto :eof
 if not exist FILE && raw dd if=%device%%%sect%+1 of=(md)%mdbase4%+1 bs=1 count=%L3% skip=%S3% seek=%S3%
 if exist FILE && set /A skip3=%skip3%+%S3% &; raw dd if=%FILE% of=(md)%mdbase4%+1 bs=1 count=%L3% skip=%skip3% seek=%S3%
 crc32 (md)%mdbase4%+1 > nul ;; set /A CRC32B=%@retval%&0xffffffff
 #DEBUG#pause CRC32B=%CRC32B%
-#DEBUG#if %codenum%== &; cat --hex (md)%mdbase4%+1 && pause
+#DEBUG#if %codenum%==27 &; cat --hex (md)%mdbase4%+1 && pause
 if not %CRC32B%==%BCCRC32B% && set bootcode= && set /a codenum=%codenum%+1 && goto :FAT32bootcode
 endlocal && set "bootcode=%bootcode%"
 goto :eof
@@ -1026,7 +1026,7 @@ goto :spaceloop
 :help
 setlocal
 pager status > nul ;; set pagersts=%@retval% > nul ;; pager on
-echo FATINFO.G4B v0.8.1 (20260124), by deomsh (grub4dos version 20170607 or higher)
+echo FATINFO.G4B v0.8.2 (20260202), by deomsh (grub4dos version 20170607 or higher)
 echo Function Get FAT-info (no switch), or switch: basic tests or return variable(s)
 :smallhelp
 echo -e Use 1    FATINFO.G4B [--mdbase=m] [--hex] DEVICE [switch]
@@ -1083,11 +1083,9 @@ echo -e Example  FATINFO.G4B (hd1,0) /V \x3B\x3B set
 echo -e Example  FATINFO.G4B (hd1,0) /L \x3B\x3B set result
 echo -e Example  FATINFO.G4B (hd0,0) /A32 \x3B\x3B set result
 echo -e Example  FATINFO.G4B (hd0,0) /BC \x3B\x3B set result
-#ORG#echo -e Example  FATINFO.G4B (hd0,0) /B \x3B\x3B set result
 echo -e Example  FATINFO.G4B (hd0,0)/FDDIMAGE.IMG
 echo -e Example  FATINFO.G4B --start=63 /HDDIMAGE.IMG
 echo -e Example  FATINFO.G4B --skip=0x7E00 (hd0,0)/ELTORITO.ISO
-#ORG#echo -e Example  FATINFO.G4B --skip=0x85E00 /HDDIMAGE.IMG
 echo -e Example  FATINFO.G4B --partition=0 (hd0,0)44992028+0x400000
 echo -e Example  FATINFO.G4B --start=63 (hd0,0)44992028+0x400000
 echo -e Example  FATINFO.G4B (0xe0)0x15+720
@@ -1107,7 +1105,6 @@ echo -e Example  FATINFO.G4B --start=63 /HDDIMAGE.IMG
 echo -e Example  FATINFO.G4B --skip=0x7E00 (hd0,0)/ELTORITO.ISO
 echo -e Example  FATINFO.G4B --partition=0 "(hd0,0)/L F N = Harddisk.IMG" /T
 echo -e Example  FATINFO.G4B (0xe0)0x15+720
-#ORG#echo -e Example  FATINFO.G4B --start=1929 (0x9f)
 goto :eof
 #ToUseForDebugging#
 #OKE_XX_vars##echo -n > (md)0x302+60 && set > (md)0x302+60 && raw cat --locate=\x0A (md)0x302+60 > nul &; echo %0 NUMVARS=%@retval% && cat --locate=\x0A --replace=\x20 (md)0x302+60 && raw cat (md)0x302+60 && echo && echo -n && pause Press a Key to Continue... && echo
