@@ -1,4 +1,4 @@
-## FATINFO.G4B v0.8.1 (20260124), by deomsh
+## FATINFO.G4B v0.8.2 (20260202), by deomsh
 <pre><code>Function: Get FAT-info (no switch), or switch: basic tests or return variable(s)
 Use 1:    FATINFO.G4B [--mdbase=sector] [--hex] DEVICE [switch]
 Use 2:    FATINFO.G4B [--mdbase=sector] [--start=sector|--skip=N|--partition=p] [--hex] FILE [switch]
@@ -69,6 +69,9 @@ Example:  FATINFO.G4B --partition=0 /HDDIMAGE.IMG
 Example:  FATINFO.G4B --start=1929 (0x9f)</code></pre>    
 
 ### HISTORY
+Version 0.8.2  
+Maintanance update  
+
 Version 0.8.1  
 Bugfix: test of volume/ partition starts at begin of a head on disk/ blocklist  
 Bugfix: test of hidden sectors on disk/ blocklist  
@@ -152,7 +155,7 @@ Version 0.2
 First published version  
 
 ### SCREENSHOTS
-![FATINFO G4B v0 8 1 VERSION and TEXTSTAT](https://github.com/user-attachments/assets/08e6b7c4-90e4-4809-b415-26a09b37edc2)
+![FATINFO G4B v0 8 2 VERSION and TEXTSTAT](https://github.com/user-attachments/assets/852c2cdc-904f-48b2-a05f-142ca9df7608)
 
 #### Small Help:
 ![FATINFO G4B v0 7 1 SmallHelp](https://github.com/user-attachments/assets/afcff970-40bb-4b63-87b5-b0237c85c045)
